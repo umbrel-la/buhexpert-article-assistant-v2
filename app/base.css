@@ -1,0 +1,54 @@
+@font-face {
+  font-family: Roboto;
+  src: url("/buhexpert/roboto-400.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Roboto;
+  src: url("/buhexpert/roboto-500.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: Roboto;
+  src: url("/buhexpert/roboto-700.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: Montserrat;
+  src: url("/buhexpert/montserrat-900.ttf") format("truetype");
+  font-weight: 900;
+  font-display: swap;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  background: white;
+}
+html {
+  scroll-behavior: smooth;
+}
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+button,
+a,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+::selection {
+  background: #c6edef;
+  color: #211d4c;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

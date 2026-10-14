@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import "./redesign.css";
-import "./article.css";
-import "./article-fixes.css";
-import "./personalized.css";
+import "./base.css";
 
 export const metadata: Metadata = {
-  title: "БухЭксперт — ИИ-помощник по 1С",
-  description: "Демонстрационный ИИ-помощник по материалам БухЭксперта",
+  title: "Сортировка сотрудников в ЗУП — Бухэксперт",
+  description:
+    "Интерактивный прототип ИИ-помощника внутри статьи Бухэксперта. Демонстрационные ответы и авторизация.",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

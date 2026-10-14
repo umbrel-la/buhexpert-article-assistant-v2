@@ -1,5 +1,7 @@
-import { AppShell } from "@/components/AppShell";
+import { ArticlePrototype } from "@/components/ArticlePrototype";
+import { pilotEnabled } from "@/lib/article-assistant/server";
+export const dynamic = "force-dynamic";
 
 export default function Home() {
-  return <AppShell />;
+  return <ArticlePrototype enabled={pilotEnabled()} />;
 }
