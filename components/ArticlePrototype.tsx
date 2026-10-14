@@ -278,18 +278,6 @@ export function ArticlePrototype({
         </nav>
         <article>
           <h1>{article.title}</h1>
-          <div className={s.date}>
-            Последнее изменение:{" "}
-            <time dateTime="2019-08-09">{article.updatedAt}</time>
-          </div>
-          <blockquote className={s.readerQuestion}>
-            <span aria-hidden="true">?</span>
-            <p>
-              Необходимо, чтобы в документах сотрудники «выстраивались» по
-              алфавиту. Можно это настроить?
-            </p>
-          </blockquote>
-          <p className={s.articleText}>{article.intro}</p>
           {(demo || enabled) && (
             <Assistant
               key={`${article.slug}-${scenario}-${revision}`}
@@ -303,6 +291,18 @@ export function ArticlePrototype({
               onAuthChange={setLoggedIn}
             />
           )}
+          <div className={s.date}>
+            Последнее изменение:{" "}
+            <time dateTime="2019-08-09">{article.updatedAt}</time>
+          </div>
+          <blockquote className={s.readerQuestion}>
+            <span aria-hidden="true">?</span>
+            <p>
+              Необходимо, чтобы в документах сотрудники «выстраивались» по
+              алфавиту. Можно это настроить?
+            </p>
+          </blockquote>
+          <p className={s.articleText}>{article.intro}</p>
           <div id="instructions" className={s.instructions}>
             <p>
               Настройка производится в разделе{" "}
