@@ -228,7 +228,6 @@
 .main {
   margin-left: 361px;
   padding: 36px 30px 0 16px;
-  max-width: 1450px;
 }
 .breadcrumbs {
   display: flex;
@@ -567,12 +566,6 @@
   width: 44px;
   height: 44px;
   font-size: 29px;
-}
-@media (min-width: 1800px) {
-  .main {
-    max-width: 1380px;
-    padding-right: 45px;
-  }
 }
 @media (max-width: 1199px) {
   .header {

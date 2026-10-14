@@ -416,7 +416,7 @@ test("widget view requires continuous 50% visibility for one second", async ({
   await expect.poll(seen).toBe(1);
 });
 
-for (const width of [1440, 768, 390, 375, 360])
+for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
   test(`responsive ${width}px — initial, registration, full answer`, async ({
     page,
   }) => {
@@ -425,6 +425,26 @@ for (const width of [1440, 768, 390, 375, 360])
     const overflow = () =>
       page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     expect(await overflow()).toBe(false);
+    const bounds = await widget(page).evaluate((e) => {
+      const card = e.getBoundingClientRect();
+      const container = e.parentElement!.getBoundingClientRect();
+      return {
+        width: card.width,
+        available: container.width,
+        centerOffset:
+          (card.left + card.right - container.left - container.right) / 2,
+      };
+    });
+    expect(bounds.width).toBeCloseTo(Math.min(960, bounds.available), 0);
+    expect(Math.abs(bounds.centerOffset)).toBeLessThan(1);
+    if (width >= 2048) {
+      expect(bounds.available).toBeGreaterThan(1600);
+      expect(
+        await page
+          .locator("main")
+          .evaluate((e) => getComputedStyle(e).maxWidth),
+      ).toBe("none");
+    }
     await screenshot(page, `page-${width}`, true);
     await widget(page).scrollIntoViewIfNeeded();
     await screenshot(page, `initial-${width}`);
@@ -458,6 +478,9 @@ for (const width of [1440, 768, 390, 375, 360])
       .getByRole("button", { name: "Зарегистрироваться", exact: true })
       .click();
     await expect(log(page)).toContainText("Записать и закрыть");
+    expect(
+      await widget(page).evaluate((e) => e.getBoundingClientRect().width),
+    ).toBeCloseTo(bounds.width, 0);
     await widget(page).scrollIntoViewIfNeeded();
     await screenshot(page, `full-${width}`);
     expect(await overflow()).toBe(false);

@@ -1,3 +1,9 @@
+.container {
+  width: 100%;
+  min-width: 0;
+  container: article-assistant / inline-size;
+  display: flow-root;
+}
 .card {
   --ink: #27243e;
   --accent: #6b46c6;
@@ -13,7 +19,9 @@
   box-shadow:
     0 5px 20px #30204e08,
     0 1px 3px #30204e04;
-  margin: 26px 0 30px;
+  width: 100%;
+  max-width: 960px;
+  margin: 26px auto 30px;
   padding: 28px;
   font:
     400 16px/1.55 Roboto,
@@ -669,10 +677,10 @@
     transform: translateY(-3px);
   }
 }
-@media (max-width: 700px) {
+@container article-assistant (max-width: 700px) {
   .card {
     padding: 20px 18px;
-    margin: 22px 0;
+    margin: 22px auto;
     border-radius: 18px;
   }
   .header {

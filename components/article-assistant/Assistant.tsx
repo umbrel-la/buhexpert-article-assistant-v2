@@ -386,280 +386,290 @@ export function Assistant({
   }
   const expanded = messages.length > 0;
   return (
-    <section
-      ref={card}
-      id="assistant"
-      className={`${s.card} ${expanded ? s.expanded : ""}`}
-      aria-label="ИИ-помощник по статье"
-    >
-      <div className={s.header}>
-        <span className={s.mark}>
-          <Owl />
-        </span>
-        <div className={s.brand}>
-          <div className={s.eyebrow}>ИИ-помощник Бухэксперта</div>
-        </div>
-        {!expanded && <span className={s.context}>По этой статье</span>}
-        {expanded && (
-          <button
-            className={s.reset}
-            onClick={reset}
-            disabled={loading && scenario !== "loading"}
-          >
-            Новый диалог
-          </button>
-        )}
-      </div>
-      <div className={s.intro} aria-hidden={expanded} inert={expanded}>
-        <div className={s.introCopy}>
-          <h2>
-            Нужен ответ <span>для вашей ситуации?</span>
-          </h2>
-          <p>
-            Задайте вопрос. Помощник учтет содержание статьи и поможет
-            разобраться.
-          </p>
-        </div>
-      </div>
-      {expanded && (
-        <div
-          ref={log}
-          className={s.messages}
-          role="region"
-          aria-label="Переписка"
-          tabIndex={0}
-          onScroll={() => {
-            if (log.current)
-              nearBottom.current =
-                log.current.scrollHeight -
-                  log.current.scrollTop -
-                  log.current.clientHeight <
-                70;
-            if (nearBottom.current) setUnread(false);
-          }}
-        >
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={
-                m.role === "user"
-                  ? s.question
-                  : `${s.answer} ${m.locked ? s.previewAnswer : ""}`
-              }
+    <div className={s.container}>
+      <section
+        ref={card}
+        id="assistant"
+        className={`${s.card} ${expanded ? s.expanded : ""}`}
+        aria-label="ИИ-помощник по статье"
+      >
+        <div className={s.header}>
+          <span className={s.mark}>
+            <Owl />
+          </span>
+          <div className={s.brand}>
+            <div className={s.eyebrow}>ИИ-помощник Бухэксперта</div>
+          </div>
+          {!expanded && <span className={s.context}>По этой статье</span>}
+          {expanded && (
+            <button
+              className={s.reset}
+              onClick={reset}
+              disabled={loading && scenario !== "loading"}
             >
-              <div className={s.messageLabel}>
-                {m.role === "user" ? "Ваш вопрос" : "Бухэксперт · ИИ-помощник"}
-              </div>
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                skipHtml
-                components={{
-                  a: (props) => (
-                    <a {...props} target="_blank" rel="noopener noreferrer" />
-                  ),
-                }}
-              >
-                {m.content}
-              </ReactMarkdown>
-            </div>
-          ))}
-          {loading && (
-            <div className={s.loading} role="status">
-              <span className={s.spinner} aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </span>
-              Готовлю ответ по статье
-            </div>
+              Новый диалог
+            </button>
           )}
-          {locked && (
-            <div className={s.gate}>
-              <div>
-                <div className={s.decorativeLines} aria-hidden="true">
-                  <span />
-                  <span />
+        </div>
+        <div className={s.intro} aria-hidden={expanded} inert={expanded}>
+          <div className={s.introCopy}>
+            <h2>
+              Нужен ответ <span>для вашей ситуации?</span>
+            </h2>
+            <p>
+              Задайте вопрос. Помощник учтет содержание статьи и поможет
+              разобраться.
+            </p>
+          </div>
+        </div>
+        {expanded && (
+          <div
+            ref={log}
+            className={s.messages}
+            role="region"
+            aria-label="Переписка"
+            tabIndex={0}
+            onScroll={() => {
+              if (log.current)
+                nearBottom.current =
+                  log.current.scrollHeight -
+                    log.current.scrollTop -
+                    log.current.clientHeight <
+                  70;
+              if (nearBottom.current) setUnread(false);
+            }}
+          >
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={
+                  m.role === "user"
+                    ? s.question
+                    : `${s.answer} ${m.locked ? s.previewAnswer : ""}`
+                }
+              >
+                <div className={s.messageLabel}>
+                  {m.role === "user"
+                    ? "Ваш вопрос"
+                    : "Бухэксперт · ИИ-помощник"}
                 </div>
-                <h3>
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="5" y="10" width="14" height="11" rx="3" />
-                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
-                  </svg>
-                  Полный ответ готов
-                </h3>
-                <p>
-                  Зарегистрируйтесь бесплатно, чтобы прочитать продолжение и
-                  задать уточняющий вопрос.
-                </p>
-                {token ? (
-                  <button
-                    className={s.primary}
-                    disabled={unlocking}
-                    onClick={() => void unlock(token)}
-                  >
-                    {unlocking
-                      ? "Открываю ответ…"
-                      : "Открыть сохраненный ответ"}
-                  </button>
-                ) : (
-                  <>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  skipHtml
+                  components={{
+                    a: (props) => (
+                      <a {...props} target="_blank" rel="noopener noreferrer" />
+                    ),
+                  }}
+                >
+                  {m.content}
+                </ReactMarkdown>
+              </div>
+            ))}
+            {loading && (
+              <div className={s.loading} role="status">
+                <span className={s.spinner} aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                Готовлю ответ по статье
+              </div>
+            )}
+            {locked && (
+              <div className={s.gate}>
+                <div>
+                  <div className={s.decorativeLines} aria-hidden="true">
+                    <span />
+                    <span />
+                  </div>
+                  <h3>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <rect x="5" y="10" width="14" height="11" rx="3" />
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+                    </svg>
+                    Полный ответ готов
+                  </h3>
+                  <p>
+                    Зарегистрируйтесь бесплатно, чтобы прочитать продолжение и
+                    задать уточняющий вопрос.
+                  </p>
+                  {token ? (
                     <button
                       className={s.primary}
-                      onClick={() => openAuth("registration")}
+                      disabled={unlocking}
+                      onClick={() => void unlock(token)}
                     >
-                      Зарегистрироваться и посмотреть ответ
+                      {unlocking
+                        ? "Открываю ответ…"
+                        : "Открыть сохраненный ответ"}
                     </button>
-                    <div className={s.loginLine}>
-                      Уже есть аккаунт?{" "}
+                  ) : (
+                    <>
                       <button
-                        className={s.link}
-                        onClick={() => openAuth("login")}
+                        className={s.primary}
+                        onClick={() => openAuth("registration")}
                       >
-                        Войти
+                        Зарегистрироваться и посмотреть ответ
                       </button>
-                    </div>
-                  </>
+                      <div className={s.loginLine}>
+                        Уже есть аккаунт?{" "}
+                        <button
+                          className={s.link}
+                          onClick={() => openAuth("login")}
+                        >
+                          Войти
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            {error && (
+              <div className={s.error} role="alert">
+                <strong>
+                  {locked
+                    ? "Ответ пока не открылся"
+                    : "Не удалось получить ответ"}
+                </strong>
+                <p>{error}</p>
+                {hasPending && (
+                  <button
+                    className={s.retry}
+                    onClick={() => void send(pending.current!.question, true)}
+                  >
+                    Повторить запрос
+                  </button>
                 )}
               </div>
-            </div>
-          )}
-          {error && (
-            <div className={s.error} role="alert">
-              <strong>
-                {locked
-                  ? "Ответ пока не открылся"
-                  : "Не удалось получить ответ"}
-              </strong>
-              <p>{error}</p>
-              {hasPending && (
-                <button
-                  className={s.retry}
-                  onClick={() => void send(pending.current!.question, true)}
-                >
-                  Повторить запрос
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-      {unread && (
-        <button
-          className={s.newMessages}
-          onClick={() => {
-            if (log.current) log.current.scrollTop = log.current.scrollHeight;
-            setUnread(false);
-          }}
-        >
-          К новым сообщениям ↓
-        </button>
-      )}
-      {!locked && (!expanded || token || error) && (
-        <form
-          className={s.composer}
-          onSubmit={(e) => {
-            e.preventDefault();
-            void send();
-          }}
-        >
-          <label htmlFor="assistant-question">
-            {expanded ? "Уточните вашу ситуацию" : "Ваш вопрос"}
-          </label>
-          <div className={s.inputRow}>
-            <textarea
-              ref={input}
-              id="assistant-question"
-              rows={2}
-              maxLength={2000}
-              value={draft}
-              onChange={(e) => {
-                setDraft(e.target.value);
-                if (inputHint) setInputHint("");
-              }}
-              aria-invalid={!!inputHint}
-              aria-describedby={inputHint ? "assistant-input-hint" : undefined}
-              placeholder={
-                expanded
-                  ? "Напишите уточняющий вопрос"
-                  : "Что хотите уточнить по статье?"
-              }
-              disabled={loading}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                  e.preventDefault();
-                  void send();
-                }
-              }}
-            />
-            <button
-              className={s.primary}
-              aria-label={expanded ? "Отправить" : undefined}
-              disabled={loading || hasPending}
-              type="submit"
-            >
-              {loading
-                ? "Готовлю ответ…"
-                : expanded
-                  ? "Отправить"
-                  : "Спросить ИИ"}
-              <span aria-hidden="true">↗</span>
-            </button>
+            )}
           </div>
-          {inputHint && (
-            <p id="assistant-input-hint" className={s.inputHint} role="status">
-              {inputHint}
-            </p>
-          )}
-          {!expanded && (
-            <>
-              <div className={s.examples}>
-                <span>Можно начать с вопроса</span>
-                {article.suggestions.map((q) => (
-                  <button
-                    type="button"
-                    key={q}
-                    onClick={() => {
-                      setDraft(q);
-                      setInputHint("");
-                      input.current?.focus();
-                    }}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-              {!token && (
-                <p className={s.condition}>
-                  Начало ответа доступно сразу. Полный ответ откроется после
-                  бесплатной регистрации.
-                </p>
-              )}
-            </>
-          )}
-        </form>
-      )}
-      <p className={s.disclaimer}>
-        ИИ может ошибаться. Сверяйте ответ с материалами статьи.
-      </p>
-      {modal && (
-        <AuthDialog
-          kind={modal}
-          adapter={auth}
-          onSwitch={openAuth}
-          onClose={() => setModal(undefined)}
-          onSuccess={async (result) => {
-            setToken(result.token);
-            setModal(undefined);
-            onAuthChange?.();
-            track(
-              result.kind === "registration"
-                ? "h01_registration_success"
-                : "h01_existing_login",
-            );
-            if (locked) await unlock(result.token);
-          }}
-        />
-      )}
-    </section>
+        )}
+        {unread && (
+          <button
+            className={s.newMessages}
+            onClick={() => {
+              if (log.current) log.current.scrollTop = log.current.scrollHeight;
+              setUnread(false);
+            }}
+          >
+            К новым сообщениям ↓
+          </button>
+        )}
+        {!locked && (!expanded || token || error) && (
+          <form
+            className={s.composer}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void send();
+            }}
+          >
+            <label htmlFor="assistant-question">
+              {expanded ? "Уточните вашу ситуацию" : "Ваш вопрос"}
+            </label>
+            <div className={s.inputRow}>
+              <textarea
+                ref={input}
+                id="assistant-question"
+                rows={2}
+                maxLength={2000}
+                value={draft}
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  if (inputHint) setInputHint("");
+                }}
+                aria-invalid={!!inputHint}
+                aria-describedby={
+                  inputHint ? "assistant-input-hint" : undefined
+                }
+                placeholder={
+                  expanded
+                    ? "Напишите уточняющий вопрос"
+                    : "Что хотите уточнить по статье?"
+                }
+                disabled={loading}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    void send();
+                  }
+                }}
+              />
+              <button
+                className={s.primary}
+                aria-label={expanded ? "Отправить" : undefined}
+                disabled={loading || hasPending}
+                type="submit"
+              >
+                {loading
+                  ? "Готовлю ответ…"
+                  : expanded
+                    ? "Отправить"
+                    : "Спросить ИИ"}
+                <span aria-hidden="true">↗</span>
+              </button>
+            </div>
+            {inputHint && (
+              <p
+                id="assistant-input-hint"
+                className={s.inputHint}
+                role="status"
+              >
+                {inputHint}
+              </p>
+            )}
+            {!expanded && (
+              <>
+                <div className={s.examples}>
+                  <span>Можно начать с вопроса</span>
+                  {article.suggestions.map((q) => (
+                    <button
+                      type="button"
+                      key={q}
+                      onClick={() => {
+                        setDraft(q);
+                        setInputHint("");
+                        input.current?.focus();
+                      }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+                {!token && (
+                  <p className={s.condition}>
+                    Начало ответа доступно сразу. Полный ответ откроется после
+                    бесплатной регистрации.
+                  </p>
+                )}
+              </>
+            )}
+          </form>
+        )}
+        <p className={s.disclaimer}>
+          ИИ может ошибаться. Сверяйте ответ с материалами статьи.
+        </p>
+        {modal && (
+          <AuthDialog
+            kind={modal}
+            adapter={auth}
+            onSwitch={openAuth}
+            onClose={() => setModal(undefined)}
+            onSuccess={async (result) => {
+              setToken(result.token);
+              setModal(undefined);
+              onAuthChange?.();
+              track(
+                result.kind === "registration"
+                  ? "h01_registration_success"
+                  : "h01_existing_login",
+              );
+              if (locked) await unlock(result.token);
+            }}
+          />
+        )}
+      </section>
+    </div>
   );
 }
