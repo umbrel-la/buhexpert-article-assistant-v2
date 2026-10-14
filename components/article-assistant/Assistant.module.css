@@ -26,21 +26,21 @@
   pointer-events: none;
   background: conic-gradient(
     from var(--assistant-glow-angle),
-    #9c64ef 0deg,
-    #b58aef 95deg,
-    #8f58ef 145deg,
-    #528bff 185deg,
-    #52dcd7 215deg,
-    #ffd37d 240deg,
-    #f38ac0 265deg,
-    #a266f2 300deg,
-    #9c64ef 360deg
+    #9950ff 0deg,
+    #b575ff 95deg,
+    #8740ff 145deg,
+    #397cff 185deg,
+    #32e2de 215deg,
+    #ffcc62 240deg,
+    #ff70bb 265deg,
+    #a04aff 300deg,
+    #9950ff 360deg
   );
   mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
-  animation: assistantGlow 9s linear infinite;
+  animation: assistantGlow 5s linear infinite;
 }
 .container::before {
   z-index: 1;
@@ -51,7 +51,7 @@
   padding: 7px;
   border-radius: 26px;
   filter: blur(10px);
-  opacity: 0.8;
+  opacity: 0.9;
 }
 @keyframes assistantGlow {
   to {
