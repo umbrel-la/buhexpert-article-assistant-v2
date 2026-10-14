@@ -559,13 +559,16 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
         width: card.width,
         available: container.width,
         articleWidth: e.closest("article")!.getBoundingClientRect().width,
-        leftOffset:
-          card.left - e.closest("article")!.getBoundingClientRect().left,
+        centerOffset:
+          card.left +
+          card.width / 2 -
+          (e.closest("article")!.getBoundingClientRect().left +
+            e.closest("article")!.getBoundingClientRect().width / 2),
       };
     });
     expect(bounds.width).toBeCloseTo(bounds.available, 0);
     expect(bounds.width).toBeLessThanOrEqual(760);
-    expect(Math.abs(bounds.leftOffset)).toBeLessThan(1);
+    expect(Math.abs(bounds.centerOffset)).toBeLessThan(1);
     const initialHeight = await widget(page).evaluate(
       (e) => e.getBoundingClientRect().height,
     );
