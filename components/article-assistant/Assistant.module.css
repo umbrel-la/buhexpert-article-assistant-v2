@@ -54,7 +54,7 @@
 }
 .masthead {
   flex-shrink: 0;
-  padding: 24px;
+  padding: 6px 20px;
   color: #fff;
   background: linear-gradient(115deg, #352452, #5b378d);
 }
@@ -67,20 +67,21 @@
   gap: 10px;
   flex-shrink: 0;
   min-width: 0;
+  min-height: 44px;
 }
 .mark {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   display: grid;
   place-items: center;
   color: #fff;
   background: #ffffff12;
   border: 1px solid #ffffff40;
-  border-radius: 11px;
+  border-radius: 9px;
 }
 .mark svg {
-  width: 27px;
+  width: 24px;
 }
 .brand {
   min-width: 0;
@@ -91,57 +92,21 @@
   color: #f3ebff;
   line-height: 1.4;
 }
-.context {
-  margin-left: auto;
-  flex-shrink: 0;
-  padding: 5px 10px;
-  border: 1px solid #ffffff38;
-  border-radius: 20px;
-  background: #ffffff0a;
-  font-size: 12px;
-  color: #f3ebff;
-  white-space: nowrap;
-}
-.intro {
-  display: grid;
-  grid-template-rows: 1fr;
-  opacity: 1;
-  transition:
-    grid-template-rows 180ms ease,
-    opacity 150ms ease;
-}
-.introCopy {
-  overflow: hidden;
-  min-height: 0;
-}
-.intro h2 {
-  font:
-    700 28px/1.22 Roboto,
-    Arial,
-    sans-serif;
-  letter-spacing: -0.02em;
-  margin: 18px 0 10px;
-  color: #fff;
-  text-wrap: balance;
-  max-width: 760px;
-}
-.intro p {
-  margin: 0;
-  color: #eee4fa;
-  max-width: 680px;
-  font-size: 16px;
-  line-height: 1.6;
-}
 .composer {
   flex-shrink: 0;
   min-width: 0;
-  padding: 24px 24px 0;
+  padding: 20px;
 }
-.composer label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px;
+.fieldLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 .inputRow {
   display: flex;
@@ -154,7 +119,7 @@
   min-width: 0;
   flex: 1;
   width: 100%;
-  min-height: 72px;
+  min-height: max(54px, calc(1.5em + 26px));
   max-height: 128px;
   border: 1px solid #9382af;
   background: white;
@@ -230,7 +195,7 @@
 }
 .inputRow .primary {
   min-width: 174px;
-  height: 52px;
+  min-height: 54px;
   flex-shrink: 0;
 }
 .inputHint {
@@ -243,13 +208,7 @@
   gap: 8px;
   align-items: stretch;
   flex-wrap: wrap;
-  margin: 18px 0;
-}
-.examples > span {
-  flex-basis: 100%;
-  font-size: 14px;
-  color: var(--muted);
-  margin-bottom: 2px;
+  margin: 12px 0;
 }
 .card .examples button {
   padding: 10px 13px;
@@ -276,13 +235,13 @@
   margin: 0;
   line-height: 1.55;
 }
-.disclaimer {
+.answer .disclaimer {
   border-top: 1px solid var(--line);
-  padding: 12px 0 20px;
-  margin: 16px 24px 0;
+  padding-top: 10px;
+  margin: 12px 0 0;
   font-size: 12px;
+  line-height: 1.5;
   color: #665873;
-  flex-shrink: 0;
 }
 .card .reset {
   border: 1px solid #ffffff40;
@@ -308,14 +267,6 @@
   max-height: min(70dvh, calc(var(--visual-height, 100dvh) * 0.7));
   min-height: 0;
 }
-.expanded .masthead {
-  padding: 12px 24px;
-}
-.expanded .intro {
-  grid-template-rows: 0fr;
-  opacity: 0;
-  flex-shrink: 0;
-}
 .messages {
   flex: 0 1 auto;
   min-height: 0;
@@ -323,7 +274,7 @@
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: #ad97cb transparent;
-  padding: 24px 24px 8px;
+  padding: 20px 20px 4px;
 }
 .messages:focus-visible {
   outline-offset: -4px;
@@ -407,18 +358,12 @@
   margin-bottom: 12px;
 }
 .expanded .composer {
-  padding: 16px 24px 8px;
+  padding: 16px 20px;
   border-top: 1px solid var(--line);
   background: #f8f5fc;
 }
 .expanded .inputRow .primary {
   min-width: 140px;
-}
-.expanded .disclaimer {
-  border: 0;
-  padding: 2px 24px 14px;
-  margin: 0;
-  background: #f8f5fc;
 }
 .loading {
   min-height: 64px;
@@ -660,12 +605,12 @@
     transform: translateY(-3px);
   }
 }
-@container article-assistant (max-width: 700px) {
+@container article-assistant (max-width: 600px) {
   .card {
     border-radius: 18px;
   }
   .masthead {
-    padding: 20px 16px;
+    padding: 4px 16px;
   }
   .header {
     gap: 8px;
@@ -682,43 +627,27 @@
   .eyebrow {
     font-size: 13px;
   }
-  .context {
-    font-size: 12px;
-    padding: 4px 7px;
-  }
-  .intro h2 {
-    font-size: 24px;
-    margin-top: 18px;
-    line-height: 1.25;
-    text-wrap: pretty;
-  }
-  .intro p {
-    line-height: 1.5;
-  }
   .composer {
-    padding: 16px 16px 0;
+    padding: 16px;
   }
   .inputRow textarea {
-    min-height: 72px;
+    min-height: max(52px, calc(1.5em + 26px));
     padding: 12px;
   }
+  .inputRow .primary {
+    min-height: 52px;
+  }
   .examples {
-    gap: 8px;
-    margin: 16px 0;
+    gap: 4px 8px;
+    margin: 8px 0;
   }
   .card .examples button {
     font-size: 14px;
     padding: 10px 12px;
   }
   .condition {
-    font-size: 14px;
-  }
-  .disclaimer {
-    padding: 10px 0 16px;
-    margin: 12px 16px 0;
-  }
-  .expanded .masthead {
-    padding: 10px 16px;
+    font-size: 13px;
+    line-height: 1.5;
   }
   .expanded .header {
     gap: 8px;
@@ -760,24 +689,21 @@
     font-size: 13px;
   }
   .expanded .inputRow textarea {
-    min-height: 52px;
+    min-height: max(52px, calc(1.5em + 26px));
     max-height: 96px;
     padding: 12px;
   }
-  .expanded .composer label {
-    font-size: 13px;
-  }
   .expanded .composer {
-    padding: 12px 16px 8px;
-  }
-  .expanded .disclaimer {
-    font-size: 11px;
-    padding: 0 16px 12px;
+    padding: 12px 16px;
   }
 }
 @container article-assistant (max-width: 600px) {
   .inputRow {
     flex-direction: column;
+    gap: 8px;
+  }
+  .inputRow textarea {
+    flex: 0 0 auto;
   }
   .inputRow .primary {
     width: 100%;
@@ -785,6 +711,9 @@
   .expanded .inputRow {
     flex-direction: row;
     gap: 8px;
+  }
+  .expanded .inputRow textarea {
+    flex: 1;
   }
   .expanded .inputRow .primary {
     min-width: 44px;
@@ -794,9 +723,6 @@
   }
 }
 @container article-assistant (max-width: 500px) {
-  .context {
-    display: none;
-  }
   .gateActions {
     gap: 8px;
   }
@@ -804,7 +730,6 @@
     font-size: 12px;
     padding: 7px;
     flex-shrink: 0;
-    max-width: 85px;
     line-height: 1.4;
   }
 }

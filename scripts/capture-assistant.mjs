@@ -31,8 +31,14 @@ try {
         });
       });
       await page.screenshot({
-        path: `${destination}/contrast-${width}-${state}-page.png`,
+        path: `${destination}/compact-${width}-${state}-page.png`,
       });
+      if (state === "initial" || state === "long") {
+        await page.screenshot({
+          path: `${destination}/compact-${width}-${state}-full-page.png`,
+          fullPage: true,
+        });
+      }
     };
     await capture("initial");
     if (width === 1440) {
@@ -50,10 +56,8 @@ try {
       );
       await page.screenshot({ path: `${destination}/ux-wide-page.png` });
     }
-    await card
-      .getByRole("button", { name: "Как включить сортировку по фамилии?" })
-      .click();
-    await card.getByRole("button", { name: "Спросить ИИ" }).click();
+    await card.getByRole("button", { name: "Сортировка по фамилии" }).click();
+    await card.getByRole("button", { name: "Получить ответ" }).click();
     const register = card.getByRole("button", {
       name: "Зарегистрироваться и посмотреть ответ",
     });
@@ -78,6 +82,32 @@ try {
     const unread = card.getByRole("button", { name: "К новым сообщениям ↓" });
     if (await unread.isVisible()) await unread.click();
     await capture("follow-up");
+    const history = page.getByRole("region", {
+      name: "Переписка",
+      exact: true,
+    });
+    for (const question of [
+      "А по табельному номеру?",
+      "Не вижу этот пункт в своей версии",
+      "Как включить сортировку по фамилии?",
+    ]) {
+      const count = await history
+        .getByText("Бухэксперт · ИИ-помощник", { exact: true })
+        .count();
+      await field.fill(question);
+      await card
+        .getByRole("button", { name: "Отправить", exact: true })
+        .click();
+      await history
+        .getByText("Бухэксперт · ИИ-помощник", { exact: true })
+        .nth(count)
+        .waitFor();
+    }
+    await history.evaluate((e) => {
+      e.scrollTop = 0;
+      e.dispatchEvent(new Event("scroll"));
+    });
+    await capture("long");
     await page.close();
   }
 } finally {

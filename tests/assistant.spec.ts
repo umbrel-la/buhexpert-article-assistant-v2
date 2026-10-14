@@ -117,18 +117,20 @@ test("guest → preview → dismiss registration → register → same answer �
   });
   await page.goto("/");
   await expect(
-    widget(page).getByRole("button", { name: "Спросить ИИ" }),
+    widget(page).getByRole("button", { name: "Получить ответ" }),
   ).toBeEnabled();
+  await expect(widget(page)).not.toContainText("ИИ может ошибаться");
+  await expect(widget(page).getByRole("button")).toHaveCount(3);
   await screenshot(page, "desktop-initial");
   await screenshot(page, "desktop-page", true);
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(page.getByLabel("Ваш вопрос", { exact: true })).toBeFocused();
   await expect(widget(page).getByRole("status")).toContainText(
     "Напишите вопрос",
   );
   expect(queries).toBe(0);
   await widget(page)
-    .getByRole("button", { name: "Как включить сортировку по фамилии?" })
+    .getByRole("button", { name: "Сортировка по фамилии" })
     .click();
   await expect(page.getByLabel("Ваш вопрос", { exact: true })).toHaveValue(
     "Как включить сортировку по фамилии?",
@@ -136,7 +138,7 @@ test("guest → preview → dismiss registration → register → same answer �
   expect(queries).toBe(0);
   await expect(page.getByLabel("Ваш вопрос", { exact: true })).toBeFocused();
   await expect(widget(page).getByRole("status")).toHaveCount(0);
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(widget(page).getByRole("status")).toContainText(
     "Готовлю ответ по статье",
   );
@@ -146,6 +148,7 @@ test("guest → preview → dismiss registration → register → same answer �
     }),
   ).toBeVisible();
   expect(queries).toBe(1);
+  await expect(log(page)).toContainText("ИИ может ошибаться");
   await expect(log(page)).not.toContainText("Нажмите «Записать и закрыть»");
   await widget(page).scrollIntoViewIfNeeded();
   await screenshot(page, "desktop-preview");
@@ -188,7 +191,7 @@ test("guest → preview → dismiss registration → register → same answer �
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("А по табельному номеру?");
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(log(page)).toContainText("в статье указана возможность");
   events = await page.evaluate(() => window.prototypeEvents);
   expect(
@@ -245,7 +248,7 @@ test("API failure preserves draft and history; retry does not count twice", asyn
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("Как сортировать по фамилии?");
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(log(page)).toContainText("Записать и закрыть");
   await page.route(
     "**/api/demo-assistant",
@@ -400,7 +403,7 @@ test("Markdown renders formatting and rejects HTML and javascript URLs", async (
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("Проверьте форматирование");
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(log(page).locator("strong")).toHaveText("Важное");
   await expect(log(page).locator("ol li")).toHaveCount(2);
   await expect(log(page).locator("script")).toHaveCount(0);
@@ -521,6 +524,18 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
     });
     expect(bounds.width).toBeCloseTo(bounds.available, 0);
     expect(Math.abs(bounds.centerOffset)).toBeLessThan(1);
+    const initialHeight = await widget(page).evaluate(
+      (e) => e.getBoundingClientRect().height,
+    );
+    if ([1440, 1024, 390].includes(width)) {
+      expect(initialHeight).toBeGreaterThanOrEqual(width === 390 ? 300 : 240);
+      expect(initialHeight).toBeLessThanOrEqual(width === 390 ? 350 : 280);
+    }
+    const inputHeight = await page
+      .getByLabel("Ваш вопрос", { exact: true })
+      .evaluate((e) => e.getBoundingClientRect().height);
+    expect(inputHeight).toBeGreaterThanOrEqual(52);
+    expect(inputHeight).toBeLessThanOrEqual(56);
     if (width >= 2048) {
       expect(bounds.available).toBeGreaterThan(1600);
       expect(
@@ -543,7 +558,12 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
         "Как включить сортировку по фамилии? " +
           "ОченьДлинноеСловоБезПробелов".repeat(14),
       );
-    await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+    expect(
+      await page
+        .getByLabel("Ваш вопрос", { exact: true })
+        .evaluate((e) => e.getBoundingClientRect().height),
+    ).toBeGreaterThan(inputHeight);
+    await widget(page).getByRole("button", { name: "Получить ответ" }).click();
     await widget(page)
       .getByRole("button", { name: "Зарегистрироваться и посмотреть ответ" })
       .click();

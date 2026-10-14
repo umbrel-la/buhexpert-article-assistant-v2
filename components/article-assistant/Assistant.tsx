@@ -284,7 +284,7 @@ export function Assistant({
       const question =
         scenario === "long"
           ? "Расскажите подробно о сортировке сотрудников"
-          : article.suggestions[0];
+          : article.suggestions[0].question;
       const id = crypto.randomUUID();
       count.current++;
       track("h01_question_submit");
@@ -385,6 +385,7 @@ export function Assistant({
     setTimeout(() => input.current?.focus(), 0);
   }
   const expanded = messages.length > 0;
+  const lastAnswerId = messages.findLast((m) => m.role === "assistant")?.id;
   return (
     <div className={s.container}>
       <section
@@ -399,9 +400,8 @@ export function Assistant({
               <Owl />
             </span>
             <div className={s.brand}>
-              <div className={s.eyebrow}>ИИ-помощник Бухэксперта</div>
+              <div className={s.eyebrow}>ИИ-помощник по статье</div>
             </div>
-            {!expanded && <span className={s.context}>По этой статье</span>}
             {expanded && (
               <button
                 className={s.reset}
@@ -411,12 +411,6 @@ export function Assistant({
                 Новый диалог
               </button>
             )}
-          </div>
-          <div className={s.intro} aria-hidden={expanded} inert={expanded}>
-            <div className={s.introCopy}>
-              <h2>Нужен ответ для вашей ситуации?</h2>
-              <p>Задайте вопрос. Помощник учтет содержание статьи.</p>
-            </div>
           </div>
         </div>
         {expanded && (
@@ -461,6 +455,11 @@ export function Assistant({
                 >
                   {m.content}
                 </ReactMarkdown>
+                {m.id === lastAnswerId && (
+                  <p className={s.disclaimer}>
+                    ИИ может ошибаться. Сверяйте ответ с материалами статьи.
+                  </p>
+                )}
               </div>
             ))}
             {loading && (
@@ -558,14 +557,14 @@ export function Assistant({
               void send();
             }}
           >
-            <label htmlFor="assistant-question">
+            <label className={s.fieldLabel} htmlFor="assistant-question">
               {expanded ? "Уточните вашу ситуацию" : "Ваш вопрос"}
             </label>
             <div className={s.inputRow}>
               <textarea
                 ref={input}
                 id="assistant-question"
-                rows={2}
+                rows={1}
                 maxLength={2000}
                 value={draft}
                 onChange={(e) => {
@@ -599,7 +598,7 @@ export function Assistant({
                   ? "Готовлю ответ…"
                   : expanded
                     ? "Отправить"
-                    : "Спросить ИИ"}
+                    : "Получить ответ"}
                 <svg
                   className={s.sendIcon}
                   viewBox="0 0 24 24"
@@ -623,18 +622,17 @@ export function Assistant({
             {!expanded && (
               <>
                 <div className={s.examples}>
-                  <span>Можно начать с вопроса</span>
-                  {article.suggestions.map((q) => (
+                  {article.suggestions.map(({ label, question }) => (
                     <button
                       type="button"
-                      key={q}
+                      key={question}
                       onClick={() => {
-                        setDraft(q);
+                        setDraft(question);
                         setInputHint("");
                         input.current?.focus();
                       }}
                     >
-                      {q}
+                      {label}
                     </button>
                   ))}
                 </div>
@@ -648,9 +646,6 @@ export function Assistant({
             )}
           </form>
         )}
-        <p className={s.disclaimer}>
-          ИИ может ошибаться. Сверяйте ответ с материалами статьи.
-        </p>
         {modal && (
           <AuthDialog
             kind={modal}
