@@ -393,33 +393,30 @@ export function Assistant({
         className={`${s.card} ${expanded ? s.expanded : ""}`}
         aria-label="ИИ-помощник по статье"
       >
-        <div className={s.header}>
-          <span className={s.mark}>
-            <Owl />
-          </span>
-          <div className={s.brand}>
-            <div className={s.eyebrow}>ИИ-помощник Бухэксперта</div>
+        <div className={s.masthead}>
+          <div className={s.header}>
+            <span className={s.mark}>
+              <Owl />
+            </span>
+            <div className={s.brand}>
+              <div className={s.eyebrow}>ИИ-помощник Бухэксперта</div>
+            </div>
+            {!expanded && <span className={s.context}>По этой статье</span>}
+            {expanded && (
+              <button
+                className={s.reset}
+                onClick={reset}
+                disabled={loading && scenario !== "loading"}
+              >
+                Новый диалог
+              </button>
+            )}
           </div>
-          {!expanded && <span className={s.context}>По этой статье</span>}
-          {expanded && (
-            <button
-              className={s.reset}
-              onClick={reset}
-              disabled={loading && scenario !== "loading"}
-            >
-              Новый диалог
-            </button>
-          )}
-        </div>
-        <div className={s.intro} aria-hidden={expanded} inert={expanded}>
-          <div className={s.introCopy}>
-            <h2>
-              Нужен ответ <span>для вашей ситуации?</span>
-            </h2>
-            <p>
-              Задайте вопрос. Помощник учтет содержание статьи и поможет
-              разобраться.
-            </p>
+          <div className={s.intro} aria-hidden={expanded} inert={expanded}>
+            <div className={s.introCopy}>
+              <h2>Нужен ответ для вашей ситуации?</h2>
+              <p>Задайте вопрос. Помощник учтет содержание статьи.</p>
+            </div>
           </div>
         </div>
         {expanded && (
@@ -479,14 +476,10 @@ export function Assistant({
             {locked && (
               <div className={s.gate}>
                 <div>
-                  <div className={s.decorativeLines} aria-hidden="true">
-                    <span />
-                    <span />
-                  </div>
                   <h3>
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <rect x="5" y="10" width="14" height="11" rx="3" />
-                      <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="m8 12 3 3 5-6" />
                     </svg>
                     Полный ответ готов
                   </h3>
@@ -505,7 +498,7 @@ export function Assistant({
                         : "Открыть сохраненный ответ"}
                     </button>
                   ) : (
-                    <>
+                    <div className={s.gateActions}>
                       <button
                         className={s.primary}
                         onClick={() => openAuth("registration")}
@@ -521,7 +514,7 @@ export function Assistant({
                           Войти
                         </button>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
@@ -607,7 +600,15 @@ export function Assistant({
                   : expanded
                     ? "Отправить"
                     : "Спросить ИИ"}
-                <span aria-hidden="true">↗</span>
+                <svg
+                  className={s.sendIcon}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path d="m21 3-7 18-3.5-7.5L3 10l18-7Z" />
+                  <path d="m10.5 13.5 5-5" />
+                </svg>
               </button>
             </div>
             {inputHint && (
@@ -639,8 +640,8 @@ export function Assistant({
                 </div>
                 {!token && (
                   <p className={s.condition}>
-                    Начало ответа доступно сразу. Полный ответ откроется после
-                    бесплатной регистрации.
+                    Начало ответа сразу. Полный ответ после бесплатной
+                    регистрации.
                   </p>
                 )}
               </>

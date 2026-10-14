@@ -7,9 +7,9 @@ const browser = await chromium.launch();
 const destination = "docs/screenshots";
 await mkdir(destination, { recursive: true });
 try {
-  for (const width of [2048, 1440, 390, 375]) {
+  for (const width of [2048, 1440, 1024, 390, 375]) {
     const page = await browser.newPage({
-      viewport: { width, height: width > 700 ? 1000 : 844 },
+      viewport: { width, height: width > 700 ? 1100 : 844 },
       reducedMotion: "reduce",
       deviceScaleFactor: 1,
     });
@@ -22,6 +22,16 @@ try {
     const capture = async (state) => {
       await card.screenshot({
         path: `${destination}/ux-${width}-${state}.png`,
+      });
+      await card.evaluate((e) => {
+        const box = e.getBoundingClientRect();
+        window.scrollTo({
+          top: box.top + scrollY - Math.max(24, (innerHeight - box.height) / 2),
+          behavior: "instant",
+        });
+      });
+      await page.screenshot({
+        path: `${destination}/contrast-${width}-${state}-page.png`,
       });
     };
     await capture("initial");

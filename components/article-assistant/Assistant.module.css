@@ -6,46 +6,28 @@
 }
 .card {
   --ink: #27243e;
-  --accent: #6b46c6;
-  --muted: #6a647b;
-  --line: #e5dff1;
+  --accent: #7040c8;
+  --muted: #5f536f;
+  --line: #d6c8e8;
   box-sizing: border-box;
   position: relative;
   isolation: isolate;
   color: var(--ink);
-  background: linear-gradient(125deg, #fff 12%, #f8f7fc 100%);
-  border: 1px solid var(--line);
+  background: #f1ecfa;
+  border: 1px solid #c4b5de;
   border-radius: 20px;
-  box-shadow:
-    0 5px 20px #30204e08,
-    0 1px 3px #30204e04;
+  box-shadow: 0 12px 32px rgba(50, 30, 85, 0.1);
   width: 100%;
-  max-width: 960px;
-  margin: 26px auto 30px;
-  padding: 28px;
+  margin: 30px auto;
+  padding: 0;
   font:
-    400 16px/1.55 Roboto,
+    400 16px/1.6 Roboto,
     Arial,
     sans-serif;
   overflow-wrap: anywhere;
   scroll-margin-top: 24px;
   color-scheme: light;
-}
-.card::before {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  top: -1px;
-  left: 28px;
-  right: 28px;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    #9473dd 25%,
-    #c5b3ed 75%,
-    transparent
-  );
+  overflow: hidden;
 }
 .card *,
 .dialog * {
@@ -67,8 +49,17 @@
 .dialog button:focus-visible,
 .dialog input:focus-visible,
 .dialog a:focus-visible {
-  outline: 3px solid #8d6ed4;
+  outline: 3px solid #7040c8;
   outline-offset: 3px;
+}
+.masthead {
+  flex-shrink: 0;
+  padding: 24px;
+  color: #fff;
+  background: linear-gradient(115deg, #352452, #5b378d);
+}
+.masthead button:focus-visible {
+  outline-color: #fff;
 }
 .header {
   display: flex;
@@ -83,9 +74,9 @@
   flex: 0 0 36px;
   display: grid;
   place-items: center;
-  color: #704ac6;
-  background: #eee8fa;
-  border: 1px solid #e1d6f4;
+  color: #fff;
+  background: #ffffff12;
+  border: 1px solid #ffffff40;
   border-radius: 11px;
 }
 .mark svg {
@@ -97,18 +88,18 @@
 .eyebrow {
   font-size: 14px;
   font-weight: 700;
-  color: #57447c;
+  color: #f3ebff;
   line-height: 1.4;
 }
 .context {
   margin-left: auto;
   flex-shrink: 0;
   padding: 5px 10px;
-  border: 1px solid #e6dff2;
+  border: 1px solid #ffffff38;
   border-radius: 20px;
-  background: #f5f1fc;
+  background: #ffffff0a;
   font-size: 12px;
-  color: #695883;
+  color: #f3ebff;
   white-space: nowrap;
 }
 .intro {
@@ -129,17 +120,14 @@
     Arial,
     sans-serif;
   letter-spacing: -0.02em;
-  margin: 20px 0 10px;
-  color: var(--ink);
+  margin: 18px 0 10px;
+  color: #fff;
   text-wrap: balance;
   max-width: 760px;
 }
-.intro h2 span {
-  color: #6543ae;
-}
 .intro p {
-  margin: 0 0 22px;
-  color: var(--muted);
+  margin: 0;
+  color: #eee4fa;
   max-width: 680px;
   font-size: 16px;
   line-height: 1.6;
@@ -147,6 +135,7 @@
 .composer {
   flex-shrink: 0;
   min-width: 0;
+  padding: 24px 24px 0;
 }
 .composer label {
   display: block;
@@ -157,7 +146,7 @@
 .inputRow {
   display: flex;
   gap: 10px;
-  align-items: stretch;
+  align-items: flex-end;
 }
 .inputRow textarea {
   display: block;
@@ -165,12 +154,12 @@
   min-width: 0;
   flex: 1;
   width: 100%;
-  min-height: 64px;
+  min-height: 72px;
   max-height: 128px;
-  border: 1px solid #cdc3df;
+  border: 1px solid #9382af;
   background: white;
   border-radius: 11px;
-  padding: 18px 16px;
+  padding: 12px 16px;
   color: var(--ink);
   font:
     400 16px/1.5 Roboto,
@@ -181,12 +170,12 @@
     box-shadow 180ms;
 }
 .inputRow textarea::placeholder {
-  color: #7b7489;
+  color: #6f627f;
   opacity: 1;
 }
 .inputRow textarea:focus {
-  border-color: #8a68d3;
-  box-shadow: 0 0 0 3px #7551d812;
+  border-color: #7040c8;
+  box-shadow: 0 0 0 3px #7040c81f;
 }
 .inputRow textarea[aria-invalid="true"] {
   border-color: #a54d41;
@@ -196,17 +185,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  min-height: 48px;
+  gap: 12px;
+  min-height: 52px;
   padding: 13px 22px;
-  border: 1px solid #724bcb;
-  border-radius: 11px;
-  background: linear-gradient(115deg, #7953d4, #6740c3);
+  border: 1px solid #7040c8;
+  border-radius: 12px;
+  background: #7040c8;
   color: #fff;
   box-shadow:
     0 4px 10px #6b46c61a,
     inset 0 1px 0 #ffffff20;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-align: center;
   transition:
@@ -216,7 +205,7 @@
 }
 .card .primary:hover:not(:disabled),
 .dialog .authSubmit:hover:not(:disabled) {
-  background: linear-gradient(115deg, #6d46c8, #5933b1);
+  background: #5d30b0;
   box-shadow: 0 5px 14px #6b46c62b;
 }
 .card .primary:active:not(:disabled),
@@ -230,12 +219,19 @@
   color: #726387;
   box-shadow: none;
 }
-.primary span {
-  font-size: 22px;
-  font-weight: 400;
+.sendIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .inputRow .primary {
   min-width: 174px;
+  height: 52px;
+  flex-shrink: 0;
 }
 .inputHint {
   color: #8c4139;
@@ -251,16 +247,16 @@
 }
 .examples > span {
   flex-basis: 100%;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted);
   margin-bottom: 2px;
 }
 .card .examples button {
   padding: 10px 13px;
-  background: #ffffffb8;
-  border: 1px solid #dfd6ec;
+  background: #faf7ff;
+  border: 1px solid #c9b7e2;
   border-radius: 10px;
-  color: #55456f;
+  color: #58378a;
   text-align: left;
   min-height: 44px;
   font-size: 14px;
@@ -275,23 +271,23 @@
   color: #56359c;
 }
 .condition {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted);
   margin: 0;
   line-height: 1.55;
 }
 .disclaimer {
   border-top: 1px solid var(--line);
-  padding-top: 12px;
-  margin: 14px 0 0;
+  padding: 12px 0 20px;
+  margin: 16px 24px 0;
   font-size: 12px;
-  color: #756e81;
+  color: #665873;
   flex-shrink: 0;
 }
 .card .reset {
-  border: 0;
-  background: transparent;
-  color: #65557f;
+  border: 1px solid #ffffff40;
+  background: #ffffff0d;
+  color: #fff;
   margin-left: auto;
   font-size: 13px;
   padding: 10px;
@@ -299,27 +295,26 @@
   border-radius: 8px;
   transition: background 180ms;
 }
-.reset:hover {
-  background: #eee7f8;
-  color: #5e3dac;
+.card .reset:hover:not(:disabled) {
+  background: #ffffff22;
+}
+.card .reset:disabled {
+  opacity: 0.6;
 }
 .expanded {
   display: flex;
   flex-direction: column;
   height: auto;
   max-height: min(70dvh, calc(var(--visual-height, 100dvh) * 0.7));
-  padding-top: 18px;
-  padding-bottom: 16px;
   min-height: 0;
+}
+.expanded .masthead {
+  padding: 12px 24px;
 }
 .expanded .intro {
   grid-template-rows: 0fr;
   opacity: 0;
   flex-shrink: 0;
-}
-.expanded .header {
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
 }
 .messages {
   flex: 0 1 auto;
@@ -327,21 +322,24 @@
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: #d5c8e9 transparent;
-  padding: 18px 5px 2px 0;
+  scrollbar-color: #ad97cb transparent;
+  padding: 24px 24px 8px;
+}
+.messages:focus-visible {
+  outline-offset: -4px;
 }
 .messageLabel {
   font-size: 12px;
   font-weight: 500;
-  color: #766b8b;
+  color: #5d447c;
   margin-bottom: 6px;
 }
 .question {
   width: fit-content;
   max-width: 85%;
   margin: 0 0 18px auto;
-  background: #eee8f8;
-  border: 1px solid #e1d7f1;
+  background: #e3d5f4;
+  border: 1px solid #c7b2e1;
   border-radius: 14px 14px 4px 14px;
   padding: 12px 16px;
   animation: arrive 180ms ease-out;
@@ -355,10 +353,10 @@
   max-width: 78ch;
   padding: 17px 20px;
   background: #fff;
-  border: 1px solid #e9e3f1;
+  border: 1px solid #d4c5e4;
   border-radius: 4px 14px 14px 14px;
   margin: 0 0 18px;
-  line-height: 1.65;
+  line-height: 1.6;
   animation: arrive 180ms ease-out;
 }
 .answer .messageLabel {
@@ -406,35 +404,28 @@
   border: 1px solid var(--line);
 }
 .previewAnswer {
-  border-bottom: 0;
-  border-radius: 4px 14px 0 0;
-  margin-bottom: 0;
-  padding-bottom: 0;
+  margin-bottom: 12px;
 }
 .expanded .composer {
-  padding-top: 12px;
+  padding: 16px 24px 8px;
   border-top: 1px solid var(--line);
-  background: #faf9fd;
-  border-radius: 0 0 8px 8px;
-}
-.expanded .inputRow textarea {
-  min-height: 56px;
-  padding: 14px;
+  background: #f8f5fc;
 }
 .expanded .inputRow .primary {
   min-width: 140px;
 }
 .expanded .disclaimer {
   border: 0;
-  padding: 0;
-  margin-top: 10px;
+  padding: 2px 24px 14px;
+  margin: 0;
+  background: #f8f5fc;
 }
 .loading {
   min-height: 64px;
   display: flex;
   gap: 12px;
   align-items: center;
-  color: #6a5689;
+  color: #5d437f;
   font-size: 15px;
 }
 .spinner {
@@ -458,29 +449,12 @@
 }
 .gate {
   max-width: 78ch;
-  padding: 0 20px 18px;
-  border: 1px solid #e9e3f1;
-  border-top: 0;
-  border-radius: 0 0 14px 14px;
-  background: linear-gradient(#fff, #f9f6ff);
-  margin: 0 0 4px;
-}
-.decorativeLines {
-  display: grid;
-  gap: 8px;
-  padding: 16px 0;
-  mask-image: linear-gradient(#0006, transparent);
-  pointer-events: none;
-}
-.decorativeLines span {
-  display: block;
-  width: 75%;
-  height: 7px;
-  border-radius: 4px;
-  background: #d4c7e8;
-}
-.decorativeLines span:last-child {
-  width: 53%;
+  padding: 20px;
+  border: 1px solid #b59acb;
+  border-left: 4px solid #7040c8;
+  border-radius: 14px;
+  background: #faf7ff;
+  margin: 0 0 16px;
 }
 .gate h3 {
   display: flex;
@@ -494,8 +468,8 @@
 .gate h3 svg {
   width: 19px;
   height: 19px;
-  stroke: #7858b3;
-  stroke-width: 1.7;
+  stroke: #7040c8;
+  stroke-width: 2;
   flex-shrink: 0;
 }
 .gate p {
@@ -508,10 +482,19 @@
   font-size: 15px;
   padding: 13px 18px;
 }
+.gateActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+}
+.gateActions .loginLine {
+  margin: 0;
+}
 .loginLine {
   font-size: 14px;
   margin: 5px 0 0;
-  color: #6a617a;
+  color: #5f536f;
 }
 .card .link,
 .dialog .link {
@@ -519,7 +502,7 @@
   border: 0;
   padding: 10px 3px;
   min-height: 44px;
-  color: #6742b4;
+  color: #6036ad;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -556,7 +539,7 @@
 }
 .dialog {
   color-scheme: light;
-  border: 1px solid #ded4ee;
+  border: 1px solid #c4b5de;
   border-radius: 20px;
   width: 460px;
   max-width: calc(100vw - 32px);
@@ -627,7 +610,7 @@
   color: #27243e;
   font: inherit;
   width: 100%;
-  border: 1px solid #d7cce6;
+  border: 1px solid #9382af;
   border-radius: 10px;
   padding: 13px;
   min-height: 48px;
@@ -679,9 +662,10 @@
 }
 @container article-assistant (max-width: 700px) {
   .card {
-    padding: 20px 18px;
-    margin: 22px auto;
     border-radius: 18px;
+  }
+  .masthead {
+    padding: 20px 16px;
   }
   .header {
     gap: 8px;
@@ -709,20 +693,14 @@
     text-wrap: pretty;
   }
   .intro p {
-    margin-bottom: 18px;
     line-height: 1.5;
   }
-  .inputRow {
-    flex-direction: column;
-    gap: 10px;
+  .composer {
+    padding: 16px 16px 0;
   }
   .inputRow textarea {
-    min-height: 76px;
-    padding: 13px;
-  }
-  .inputRow .primary {
-    width: 100%;
-    min-height: 50px;
+    min-height: 72px;
+    padding: 12px;
   }
   .examples {
     gap: 8px;
@@ -733,28 +711,20 @@
     padding: 10px 12px;
   }
   .condition {
-    font-size: 13px;
+    font-size: 14px;
   }
   .disclaimer {
-    padding-top: 10px;
-    margin-top: 12px;
+    padding: 10px 0 16px;
+    margin: 12px 16px 0;
   }
-  .expanded {
-    padding: 14px;
+  .expanded .masthead {
+    padding: 10px 16px;
   }
   .expanded .header {
     gap: 8px;
-    padding-bottom: 8px;
-  }
-  .card .reset {
-    font-size: 12px;
-    padding: 7px;
-    max-width: 80px;
-    line-height: 1.4;
   }
   .messages {
-    padding-top: 14px;
-    padding-right: 3px;
+    padding: 16px 16px 4px;
   }
   .question {
     max-width: 92%;
@@ -768,11 +738,10 @@
     margin-bottom: 14px;
   }
   .previewAnswer {
-    margin-bottom: 0;
-    padding-bottom: 0;
+    margin-bottom: 12px;
   }
   .gate {
-    padding: 0 13px 12px;
+    padding: 16px 13px;
   }
   .gate h3 {
     font-size: 17px;
@@ -790,20 +759,6 @@
   .loginLine {
     font-size: 13px;
   }
-  .expanded .inputRow {
-    flex-direction: row;
-    gap: 8px;
-  }
-  .expanded .inputRow .primary {
-    min-width: 44px;
-    width: 48px;
-    flex-shrink: 0;
-    padding: 10px;
-    font-size: 0;
-  }
-  .expanded .inputRow .primary span {
-    font-size: 23px;
-  }
   .expanded .inputRow textarea {
     min-height: 52px;
     max-height: 96px;
@@ -812,10 +767,48 @@
   .expanded .composer label {
     font-size: 13px;
   }
+  .expanded .composer {
+    padding: 12px 16px 8px;
+  }
   .expanded .disclaimer {
     font-size: 11px;
-    margin-top: 8px;
+    padding: 0 16px 12px;
   }
+}
+@container article-assistant (max-width: 600px) {
+  .inputRow {
+    flex-direction: column;
+  }
+  .inputRow .primary {
+    width: 100%;
+  }
+  .expanded .inputRow {
+    flex-direction: row;
+    gap: 8px;
+  }
+  .expanded .inputRow .primary {
+    min-width: 44px;
+    width: 48px;
+    padding: 10px;
+    font-size: 0;
+  }
+}
+@container article-assistant (max-width: 500px) {
+  .context {
+    display: none;
+  }
+  .gateActions {
+    gap: 8px;
+  }
+  .card .reset {
+    font-size: 12px;
+    padding: 7px;
+    flex-shrink: 0;
+    max-width: 85px;
+    line-height: 1.4;
+  }
+}
+@media (max-width: 700px) {
   .modalInner {
     padding: 32px 23px 24px;
   }

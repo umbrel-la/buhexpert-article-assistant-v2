@@ -9,6 +9,90 @@ const widget = (page: Page) =>
   page.getByRole("region", { name: "ИИ-помощник по статье", exact: true });
 const log = (page: Page) =>
   page.getByRole("region", { name: "Переписка", exact: true });
+
+for (const width of [1440, 1024, 390]) {
+  test(`chat controls ${width}px — loading, retry, long history, keyboard`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: width < 500 ? 844 : 1000 });
+    await page.goto("/demo");
+    await page.getByRole("button", { name: "Загрузка", exact: true }).click();
+    await expect(widget(page).getByRole("status")).toHaveText(
+      "Готовлю ответ по статье",
+    );
+    await widget(page).scrollIntoViewIfNeeded();
+    await screenshot(page, `loading-${width}`);
+
+    await page.getByRole("button", { name: "Ошибка", exact: true }).click();
+    await expect(widget(page).getByRole("alert")).toBeVisible();
+    const savedQuestion = await page
+      .getByLabel("Уточните вашу ситуацию", { exact: true })
+      .inputValue();
+    expect(savedQuestion.length).toBeGreaterThan(0);
+    await screenshot(page, `error-${width}`);
+    const retry = widget(page).getByRole("button", {
+      name: "Повторить запрос",
+    });
+    await retry.focus();
+    await page.keyboard.press("Enter");
+    await expect(
+      widget(page).getByRole("heading", { name: "Полный ответ готов" }),
+    ).toBeVisible();
+    await expect(log(page)).toContainText(savedQuestion);
+
+    await page
+      .getByRole("button", { name: "Длинный диалог", exact: true })
+      .click();
+    await expect(
+      log(page).getByText("Ваш вопрос", { exact: true }),
+    ).toHaveCount(6);
+    await log(page).focus();
+    await page.keyboard.press("Control+Home");
+    await expect
+      .poll(() => log(page).evaluate((e) => e.scrollTop))
+      .toBeLessThan(1);
+    const before = await log(page).evaluate((e) => e.scrollTop);
+    await page.keyboard.press("PageDown");
+    await expect
+      .poll(() => log(page).evaluate((e) => e.scrollTop))
+      .toBeGreaterThan(before);
+    await widget(page).scrollIntoViewIfNeeded();
+    const field = page.getByLabel("Уточните вашу ситуацию", { exact: true });
+    const fieldBox = await field.boundingBox();
+    const historyBox = await log(page).boundingBox();
+    expect(fieldBox!.y).toBeGreaterThanOrEqual(
+      historyBox!.y + historyBox!.height,
+    );
+    expect(
+      await log(page).evaluate((e) => e.scrollHeight > e.clientHeight),
+    ).toBe(true);
+    await field.focus();
+    await page.keyboard.press("Tab");
+    const send = widget(page).getByRole("button", {
+      name: "Отправить",
+      exact: true,
+    });
+    await expect(send).toBeFocused();
+    expect(
+      await send.evaluate((e) => parseFloat(getComputedStyle(e).outlineWidth)),
+    ).toBeGreaterThanOrEqual(2);
+    expect(
+      await send.evaluate((e) => e.getBoundingClientRect().height),
+    ).toBeGreaterThanOrEqual(44);
+    await screenshot(page, `keyboard-long-${width}`);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      await widget(page).evaluate(
+        (e) => e.getBoundingClientRect().height <= innerHeight * 0.7 + 1,
+      ),
+    ).toBe(true);
+  });
+}
+
 async function screenshot(page: Page, name: string, fullPage = false) {
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: `docs/screenshots/${name}.png`, fullPage });
@@ -99,7 +183,7 @@ test("guest → preview → dismiss registration → register → same answer �
   await widget(page).getByRole("button", { name: "Новый диалог" }).click();
   await expect(log(page)).toHaveCount(0);
   await expect(widget(page)).not.toContainText(
-    "Полный ответ откроется после бесплатной регистрации",
+    "Полный ответ после бесплатной регистрации",
   );
   await page
     .getByLabel("Ваш вопрос", { exact: true })
@@ -156,7 +240,7 @@ test("API failure preserves draft and history; retry does not count twice", asyn
     .getByRole("button", { name: "Вошел заранее", exact: true })
     .click();
   await expect(widget(page)).not.toContainText(
-    "Полный ответ откроется после бесплатной регистрации",
+    "Полный ответ после бесплатной регистрации",
   );
   await page
     .getByLabel("Ваш вопрос", { exact: true })
@@ -302,7 +386,7 @@ test("Markdown renders formatting and rejects HTML and javascript URLs", async (
     .getByRole("button", { name: "Вошел заранее", exact: true })
     .click();
   await expect(widget(page)).not.toContainText(
-    "Полный ответ откроется после бесплатной регистрации",
+    "Полный ответ после бесплатной регистрации",
   );
   await page.route("**/api/demo-assistant", (route) =>
     route.fulfill({
@@ -435,7 +519,7 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
           (card.left + card.right - container.left - container.right) / 2,
       };
     });
-    expect(bounds.width).toBeCloseTo(Math.min(960, bounds.available), 0);
+    expect(bounds.width).toBeCloseTo(bounds.available, 0);
     expect(Math.abs(bounds.centerOffset)).toBeLessThan(1);
     if (width >= 2048) {
       expect(bounds.available).toBeGreaterThan(1600);
