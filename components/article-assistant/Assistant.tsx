@@ -48,6 +48,7 @@ export function Assistant({
   onAuthChange?: () => void;
 }) {
   const [draft, setDraft] = useState("");
+  const [inputHint, setInputHint] = useState("");
   const [messages, setMessages] = useState<Turn[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -63,6 +64,7 @@ export function Assistant({
     undefined,
   );
   const input = useRef<HTMLTextAreaElement>(null);
+  const focusOnReveal = useRef(false);
   const log = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLElement>(null);
   const nearBottom = useRef(true);
@@ -156,6 +158,12 @@ export function Assistant({
     }
   }, [messages, loading, error]);
   const locked = messages.some((m) => m.locked);
+  useEffect(() => {
+    if (!locked && focusOnReveal.current && input.current) {
+      focusOnReveal.current = false;
+      input.current.focus({ preventScroll: true });
+    }
+  }, [locked]);
   const openAuth = (kind: "registration" | "login") => {
     setModal(kind);
     track("auth_form_open");
@@ -180,13 +188,11 @@ export function Assistant({
         ),
       );
       nearBottom.current = false;
+      focusOnReveal.current = true;
       setMessages(updated);
       setUnread(false);
       track("h01_answer_view");
       track("h01_chat_return");
-      requestAnimationFrame(() =>
-        input.current?.focus({ preventScroll: true }),
-      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось открыть ответ.");
     } finally {
@@ -195,7 +201,13 @@ export function Assistant({
   }
   async function send(value = draft, retry = false) {
     const question = value.trim();
-    if (!question || flight.current || locked) return;
+    if (flight.current || locked) return;
+    if (!question) {
+      setInputHint("Напишите вопрос или выберите пример ниже.");
+      input.current?.focus();
+      return;
+    }
+    setInputHint("");
     flight.current = true;
     setLoading(true);
     setError("");
@@ -366,6 +378,7 @@ export function Assistant({
     setMessages([]);
     setDraft("");
     setError("");
+    setInputHint("");
     setLoading(false);
     setUnread(false);
     nearBottom.current = true;
@@ -383,12 +396,10 @@ export function Assistant({
         <span className={s.mark}>
           <Owl />
         </span>
-        <div>
+        <div className={s.brand}>
           <div className={s.eyebrow}>ИИ-помощник Бухэксперта</div>
-          {expanded && (
-            <span className={s.context}>По содержанию этой статьи</span>
-          )}
         </div>
+        {!expanded && <span className={s.context}>По этой статье</span>}
         {expanded && (
           <button
             className={s.reset}
@@ -399,12 +410,17 @@ export function Assistant({
           </button>
         )}
       </div>
-      {!expanded && (
-        <div className={s.intro}>
-          <h2>Есть вопрос по вашей ситуации?</h2>
-          <p>Помогу разобраться с учетом содержания этой статьи.</p>
+      <div className={s.intro} aria-hidden={expanded} inert={expanded}>
+        <div className={s.introCopy}>
+          <h2>
+            Нужен ответ <span>для вашей ситуации?</span>
+          </h2>
+          <p>
+            Задайте вопрос. Помощник учтет содержание статьи и поможет
+            разобраться.
+          </p>
         </div>
-      )}
+      </div>
       {expanded && (
         <div
           ref={log}
@@ -425,7 +441,11 @@ export function Assistant({
           {messages.map((m) => (
             <div
               key={m.id}
-              className={m.role === "user" ? s.question : s.answer}
+              className={
+                m.role === "user"
+                  ? s.question
+                  : `${s.answer} ${m.locked ? s.previewAnswer : ""}`
+              }
             >
               <div className={s.messageLabel}>
                 {m.role === "user" ? "Ваш вопрос" : "Бухэксперт · ИИ-помощник"}
@@ -445,20 +465,31 @@ export function Assistant({
           ))}
           {loading && (
             <div className={s.loading} role="status">
-              <span className={s.spinner} />
+              <span className={s.spinner} aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
               Готовлю ответ по статье
             </div>
           )}
           {locked && (
             <div className={s.gate}>
-              <span className={s.lockIcon} aria-hidden="true">
-                ↳
-              </span>
               <div>
-                <h3>Продолжим разбираться вместе</h3>
+                <div className={s.decorativeLines} aria-hidden="true">
+                  <span />
+                  <span />
+                </div>
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="5" y="10" width="14" height="11" rx="3" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+                  </svg>
+                  Полный ответ готов
+                </h3>
                 <p>
-                  После бесплатной регистрации откроется этот ответ. Вы сможете
-                  задать уточняющий вопрос здесь же.
+                  Зарегистрируйтесь бесплатно, чтобы прочитать продолжение и
+                  задать уточняющий вопрос.
                 </p>
                 {token ? (
                   <button
@@ -523,7 +554,7 @@ export function Assistant({
           К новым сообщениям ↓
         </button>
       )}
-      {!locked && (
+      {!locked && (!expanded || token || error) && (
         <form
           className={s.composer}
           onSubmit={(e) => {
@@ -541,11 +572,16 @@ export function Assistant({
               rows={2}
               maxLength={2000}
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                if (inputHint) setInputHint("");
+              }}
+              aria-invalid={!!inputHint}
+              aria-describedby={inputHint ? "assistant-input-hint" : undefined}
               placeholder={
                 expanded
                   ? "Напишите уточняющий вопрос"
-                  : "Напишите, что хотите уточнить"
+                  : "Что хотите уточнить по статье?"
               }
               disabled={loading}
               onKeyDown={(e) => {
@@ -557,27 +593,34 @@ export function Assistant({
             />
             <button
               className={s.primary}
-              disabled={!draft.trim() || loading || hasPending}
+              aria-label={expanded ? "Отправить" : undefined}
+              disabled={loading || hasPending}
               type="submit"
             >
               {loading
                 ? "Готовлю ответ…"
                 : expanded
                   ? "Отправить"
-                  : "Получить ответ"}
+                  : "Спросить ИИ"}
               <span aria-hidden="true">↗</span>
             </button>
           </div>
+          {inputHint && (
+            <p id="assistant-input-hint" className={s.inputHint} role="status">
+              {inputHint}
+            </p>
+          )}
           {!expanded && (
             <>
               <div className={s.examples}>
-                <span>Например:</span>
+                <span>Можно начать с вопроса</span>
                 {article.suggestions.map((q) => (
                   <button
                     type="button"
                     key={q}
                     onClick={() => {
                       setDraft(q);
+                      setInputHint("");
                       input.current?.focus();
                     }}
                   >
@@ -587,8 +630,8 @@ export function Assistant({
               </div>
               {!token && (
                 <p className={s.condition}>
-                  Начало ответа — сразу. Полный ответ — после бесплатной
-                  регистрации.
+                  Начало ответа доступно сразу. Полный ответ откроется после
+                  бесплатной регистрации.
                 </p>
               )}
             </>

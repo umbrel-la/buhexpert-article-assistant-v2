@@ -33,10 +33,16 @@ test("guest → preview → dismiss registration → register → same answer �
   });
   await page.goto("/");
   await expect(
-    widget(page).getByRole("button", { name: "Получить ответ" }),
-  ).toBeDisabled();
+    widget(page).getByRole("button", { name: "Спросить ИИ" }),
+  ).toBeEnabled();
   await screenshot(page, "desktop-initial");
   await screenshot(page, "desktop-page", true);
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await expect(page.getByLabel("Ваш вопрос", { exact: true })).toBeFocused();
+  await expect(widget(page).getByRole("status")).toContainText(
+    "Напишите вопрос",
+  );
+  expect(queries).toBe(0);
   await widget(page)
     .getByRole("button", { name: "Как включить сортировку по фамилии?" })
     .click();
@@ -44,7 +50,9 @@ test("guest → preview → dismiss registration → register → same answer �
     "Как включить сортировку по фамилии?",
   );
   expect(queries).toBe(0);
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await expect(page.getByLabel("Ваш вопрос", { exact: true })).toBeFocused();
+  await expect(widget(page).getByRole("status")).toHaveCount(0);
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
   await expect(widget(page).getByRole("status")).toContainText(
     "Готовлю ответ по статье",
   );
@@ -91,12 +99,12 @@ test("guest → preview → dismiss registration → register → same answer �
   await widget(page).getByRole("button", { name: "Новый диалог" }).click();
   await expect(log(page)).toHaveCount(0);
   await expect(widget(page)).not.toContainText(
-    "Полный ответ — после бесплатной регистрации",
+    "Полный ответ откроется после бесплатной регистрации",
   );
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("А по табельному номеру?");
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
   await expect(log(page)).toContainText("в статье указана возможность");
   events = await page.evaluate(() => window.prototypeEvents);
   expect(
@@ -148,12 +156,12 @@ test("API failure preserves draft and history; retry does not count twice", asyn
     .getByRole("button", { name: "Вошел заранее", exact: true })
     .click();
   await expect(widget(page)).not.toContainText(
-    "Полный ответ — после бесплатной регистрации",
+    "Полный ответ откроется после бесплатной регистрации",
   );
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("Как сортировать по фамилии?");
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
   await expect(log(page)).toContainText("Записать и закрыть");
   await page.route(
     "**/api/demo-assistant",
@@ -294,7 +302,7 @@ test("Markdown renders formatting and rejects HTML and javascript URLs", async (
     .getByRole("button", { name: "Вошел заранее", exact: true })
     .click();
   await expect(widget(page)).not.toContainText(
-    "Полный ответ — после бесплатной регистрации",
+    "Полный ответ откроется после бесплатной регистрации",
   );
   await page.route("**/api/demo-assistant", (route) =>
     route.fulfill({
@@ -308,13 +316,69 @@ test("Markdown renders formatting and rejects HTML and javascript URLs", async (
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("Проверьте форматирование");
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
   await expect(log(page).locator("strong")).toHaveText("Важное");
   await expect(log(page).locator("ol li")).toHaveCount(2);
   await expect(log(page).locator("script")).toHaveCount(0);
   expect(
     await log(page).getByText("Опасная ссылка").getAttribute("href"),
   ).not.toMatch(/^javascript:/);
+});
+
+test("loading stays compact and demo error can be retried", async ({
+  page,
+}) => {
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Загрузка", exact: true }).click();
+  await expect(widget(page).getByRole("status")).toHaveText(
+    "Готовлю ответ по статье",
+  );
+  await expect(
+    widget(page).getByRole("heading", {
+      name: "Нужен ответ для вашей ситуации?",
+    }),
+  ).toBeHidden();
+  expect(
+    await widget(page).evaluate((e) => e.getBoundingClientRect().height),
+  ).toBeLessThan(360);
+  await widget(page).getByRole("button", { name: "Новый диалог" }).click();
+  await expect(page.getByLabel("Ваш вопрос", { exact: true })).toHaveValue("");
+  await page.getByRole("button", { name: "Ошибка", exact: true }).click();
+  await expect(widget(page).getByRole("alert")).toBeVisible();
+  await expect(
+    page.getByLabel("Уточните вашу ситуацию", { exact: true }),
+  ).not.toHaveValue("");
+  await widget(page).getByRole("button", { name: "Повторить запрос" }).click();
+  await expect(
+    widget(page).getByRole("heading", { name: "Полный ответ готов" }),
+  ).toBeVisible();
+});
+
+test("mobile composer stays usable in a reduced visual viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Полный ответ", exact: true }).click();
+  const field = page.getByLabel("Уточните вашу ситуацию", { exact: true });
+  await expect(field).toBeEnabled();
+  await field.focus();
+  await page.setViewportSize({ width: 390, height: 420 });
+  await expect
+    .poll(() =>
+      field.evaluate((e) => {
+        const box = e.getBoundingClientRect();
+        return box.top >= 0 && box.bottom <= innerHeight;
+      }),
+    )
+    .toBe(true);
+  expect(
+    await widget(page).evaluate((e) => e.getBoundingClientRect().height),
+  ).toBeLessThanOrEqual(295);
+  await expect(
+    widget(page).getByRole("button", { name: "Отправить", exact: true }),
+  ).toBeVisible();
+  expect(await log(page).evaluate((e) => e.clientHeight)).toBeGreaterThan(40);
 });
 
 test("widget view requires continuous 50% visibility for one second", async ({
@@ -352,7 +416,7 @@ test("widget view requires continuous 50% visibility for one second", async ({
   await expect.poll(seen).toBe(1);
 });
 
-for (const width of [1440, 768, 390, 360])
+for (const width of [1440, 768, 390, 375, 360])
   test(`responsive ${width}px — initial, registration, full answer`, async ({
     page,
   }) => {
@@ -375,7 +439,7 @@ for (const width of [1440, 768, 390, 360])
         "Как включить сортировку по фамилии? " +
           "ОченьДлинноеСловоБезПробелов".repeat(14),
       );
-    await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+    await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
     await widget(page)
       .getByRole("button", { name: "Зарегистрироваться и посмотреть ответ" })
       .click();
