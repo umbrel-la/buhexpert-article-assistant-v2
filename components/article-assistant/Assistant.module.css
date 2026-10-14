@@ -1,3 +1,9 @@
+@property --assistant-glow-angle {
+  syntax: "<angle>";
+  initial-value: 135deg;
+  inherits: false;
+}
+
 .container {
   width: 100%;
   max-width: 880px;
@@ -6,6 +12,51 @@
   box-sizing: border-box;
   container: article-assistant / inline-size;
   display: flow-root;
+  position: relative;
+  isolation: isolate;
+  border-radius: 20px;
+}
+.container::before,
+.container::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 22px;
+  padding: 2px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--assistant-glow-angle),
+    #a477ed66 0deg,
+    #a477ed33 95deg,
+    #9f77ed 145deg,
+    #6a9cff 185deg,
+    #72dedc 215deg,
+    #ffe0a1 240deg,
+    #f5a4cc 265deg,
+    #ac7bf2 300deg,
+    #a477ed66 360deg
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: assistantGlow 9s linear infinite;
+}
+.container::before {
+  z-index: 1;
+}
+.container::after {
+  z-index: -1;
+  inset: -4px;
+  padding: 5px;
+  border-radius: 24px;
+  filter: blur(8px);
+  opacity: 0.65;
+}
+@keyframes assistantGlow {
+  to {
+    --assistant-glow-angle: 495deg;
+  }
 }
 .card {
   --ink: #27243e;
@@ -265,13 +316,16 @@
   border-color: #b49bdc;
   color: #56359c;
 }
-.answer .disclaimer {
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
+.card .answer .disclaimer {
+  border: 1px solid #ecd39b;
+  border-left: 3px solid #c48c29;
+  border-radius: 7px;
+  background: #fff6df;
+  padding: 8px 10px;
   margin: 12px 0 0;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
-  color: #665873;
+  color: #765015;
 }
 .card .reset {
   border: 1px solid #ffffff40;
@@ -782,6 +836,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .container::before,
+  .container::after,
   .card *,
   .dialog * {
     animation: none !important;
