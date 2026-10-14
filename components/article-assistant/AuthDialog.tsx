@@ -81,92 +81,104 @@ export function AuthDialog({
           width={242}
           height={52}
         />
-        <div className={s.demoNotice}>Демонстрация · аккаунт не создается</div>
+        <div className={s.demoNotice}>
+          {adapter.mode === "demo"
+            ? "Демонстрация · аккаунт не создается"
+            : "Авторизация Бухэксперта"}
+        </div>
         <h2 id="auth-heading">
           {kind === "registration"
             ? "Бесплатная регистрация"
             : "Вход в личный кабинет"}
         </h2>
         <p className={s.modalLead}>Ваш вопрос и ответ останутся здесь.</p>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (busy) return;
-            setBusy(true);
-            setError("");
-            try {
-              const result = await adapter.authenticate(kind);
-              await onSuccess(result);
-            } catch {
-              setError(
-                "Не удалось войти. Попробуйте еще раз — ответ сохранен.",
-              );
-              setBusy(false);
-            }
-          }}
-        >
-          <label htmlFor="demo-email">
-            {kind === "login" && !link
-              ? "Адрес электронной почты или логин"
-              : "Адрес электронной почты"}
-          </label>
-          <input
-            id="demo-email"
-            type={kind === "login" && !link ? "text" : "email"}
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="off"
-          />
-          {kind === "login" && !link && (
-            <>
-              <label htmlFor="demo-password">Пароль</label>
-              <input
-                id="demo-password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="off"
-              />
-            </>
-          )}
+        {adapter.mode === "real" ? (
           <p className={s.testHint}>
-            Используйте тестовые данные. Поля никуда не отправляются, письмо не
-            придет.
-          </p>
-          {error && (
-            <p className={s.error} role="alert">
-              {error}
-            </p>
-          )}
-          <button className={s.authSubmit} disabled={busy} type="submit">
-            {busy
-              ? "Открываю ответ…"
-              : kind === "registration"
-                ? "Зарегистрироваться"
-                : link
-                  ? "Продолжить по тестовой ссылке"
-                  : "Войти"}
-          </button>
-        </form>
-        {kind === "registration" ? (
-          <p className={s.legal}>
-            На сайте при регистрации принимаются{" "}
-            <a
-              href="https://buhexpert8.ru/politika-obrabotki-personalnyh-dannyh"
-              target="_blank"
-              rel="noreferrer"
-            >
-              условия обработки персональных данных
-            </a>
-            . В этом прототипе реальные данные не нужны.
+            Вход на этой странице пока недоступен. Ваш вопрос и начало ответа
+            сохранены. Закройте форму и попробуйте позже.
           </p>
         ) : (
-          <button className={s.link} onClick={() => setLink(!link)}>
-            {link ? "Войти с паролем" : "Забыли пароль? Войти по ссылке"}
-          </button>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (busy) return;
+              setBusy(true);
+              setError("");
+              try {
+                const result = await adapter.authenticate(kind);
+                await onSuccess(result);
+              } catch {
+                setError(
+                  "Не удалось войти. Попробуйте еще раз — ответ сохранен.",
+                );
+                setBusy(false);
+              }
+            }}
+          >
+            <label htmlFor="demo-email">
+              {kind === "login" && !link
+                ? "Адрес электронной почты или логин"
+                : "Адрес электронной почты"}
+            </label>
+            <input
+              id="demo-email"
+              type={kind === "login" && !link ? "text" : "email"}
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="off"
+            />
+            {kind === "login" && !link && (
+              <>
+                <label htmlFor="demo-password">Пароль</label>
+                <input
+                  id="demo-password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="off"
+                />
+              </>
+            )}
+            <p className={s.testHint}>
+              Используйте тестовые данные. Поля никуда не отправляются, письмо
+              не придет.
+            </p>
+            {error && (
+              <p className={s.error} role="alert">
+                {error}
+              </p>
+            )}
+            <button className={s.authSubmit} disabled={busy} type="submit">
+              {busy
+                ? "Открываю ответ…"
+                : kind === "registration"
+                  ? "Зарегистрироваться"
+                  : link
+                    ? "Продолжить по тестовой ссылке"
+                    : "Войти"}
+            </button>
+          </form>
         )}
+        {adapter.mode === "demo" &&
+          (kind === "registration" ? (
+            <p className={s.legal}>
+              На сайте при регистрации принимаются{" "}
+              <a
+                href="https://buhexpert8.ru/politika-obrabotki-personalnyh-dannyh"
+                target="_blank"
+                rel="noreferrer"
+              >
+                условия обработки персональных данных
+              </a>
+              . В этом прототипе реальные данные не нужны.
+            </p>
+          ) : (
+            <button className={s.link} onClick={() => setLink(!link)}>
+              {link ? "Войти с паролем" : "Забыли пароль? Войти по ссылке"}
+            </button>
+          ))}
         <p className={s.loginLine}>
           {kind === "registration" ? "Уже есть аккаунт? " : "Впервые здесь? "}
           <button

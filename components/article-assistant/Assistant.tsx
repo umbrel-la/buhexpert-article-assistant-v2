@@ -38,6 +38,7 @@ export function Assistant({
   analytics,
   authRequest,
   onAuthChange,
+  restoreAuth = true,
 }: {
   article: AssistantArticle;
   scenario?: Scenario;
@@ -45,7 +46,8 @@ export function Assistant({
   auth: AuthAdapter;
   analytics: AnalyticsAdapter;
   authRequest?: { kind: "registration" | "login"; id: number };
-  onAuthChange?: () => void;
+  onAuthChange?: (authenticated: boolean) => void;
+  restoreAuth?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const [inputHint, setInputHint] = useState("");
@@ -57,6 +59,7 @@ export function Assistant({
   const [unread, setUnread] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [hasPending, setHasPending] = useState(false);
+  const [authReady, setAuthReady] = useState(!restoreAuth);
   const session = useRef("");
   const count = useRef(0);
   const flight = useRef(false);
@@ -84,10 +87,30 @@ export function Assistant({
         initialGroup,
         questionCount: count.current,
         at: new Date().toISOString(),
-        mode: "demo",
+        mode: auth.mode,
       }),
-    [analytics, article.slug, initialGroup],
+    [analytics, article.slug, initialGroup, auth.mode],
   );
+  useEffect(() => {
+    if (!restoreAuth) return;
+    let cancelled = false;
+    void auth
+      .session()
+      .then((result) => {
+        if (cancelled) return;
+        setToken(result.authenticated ? result.token : undefined);
+        onAuthChange?.(result.authenticated);
+      })
+      .catch(() => {
+        // The ask endpoint checks the authoritative session again.
+      })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [auth, restoreAuth, onAuthChange]);
   useEffect(() => {
     session.current ||= crypto.randomUUID();
     if (!opened.current) {
@@ -201,7 +224,8 @@ export function Assistant({
   }
   async function send(value = draft, retry = false) {
     const question = value.trim();
-    if (flight.current || locked) return;
+    if (flight.current || locked || !authReady || (pending.current && !retry))
+      return;
     if (!question) {
       setInputHint("Напишите вопрос или выберите пример ниже.");
       input.current?.focus();
@@ -240,6 +264,14 @@ export function Assistant({
         },
         abort.current.signal,
       );
+      if (!answer.locked && !token) {
+        // A verified server session may have become available after mount.
+        setToken("site-session");
+        onAuthChange?.(true);
+      } else if (answer.locked && token) {
+        setToken(undefined);
+        onAuthChange?.(false);
+      }
       setMessages((current) => [
         ...current,
         {
@@ -381,6 +413,7 @@ export function Assistant({
     setInputHint("");
     setLoading(false);
     setUnread(false);
+    session.current = crypto.randomUUID();
     nearBottom.current = true;
     setTimeout(() => input.current?.focus(), 0);
   }
@@ -407,7 +440,7 @@ export function Assistant({
               <button
                 className={s.reset}
                 onClick={reset}
-                disabled={loading && scenario !== "loading"}
+                disabled={unlocking || (loading && scenario !== "loading")}
               >
                 Новый диалог
               </button>
@@ -465,6 +498,17 @@ export function Assistant({
                 >
                   {m.content}
                 </ReactMarkdown>
+                {m.locked && (
+                  <div
+                    className={s.blurredContinuation}
+                    aria-hidden="true"
+                    data-testid="blurred-continuation"
+                  >
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                )}
                 {m.id === lastAnswerId && (
                   <p className={s.disclaimer}>
                     ИИ-помощник работает в тестовом режиме и может ошибаться.
@@ -603,14 +647,14 @@ export function Assistant({
               <button
                 className={s.primary}
                 aria-label={expanded ? "Уточнить" : undefined}
-                disabled={loading || hasPending}
+                disabled={loading || hasPending || !authReady}
                 type="submit"
               >
                 {loading
                   ? "Готовим ответ…"
                   : expanded
                     ? "Уточнить"
-                    : "Спросить ИИ"}
+                    : "Получить ответ"}
                 <svg
                   className={s.sendIcon}
                   viewBox="0 0 24 24"
@@ -641,7 +685,7 @@ export function Assistant({
                     <button
                       type="button"
                       key={question}
-                      disabled={loading}
+                      disabled={loading || !authReady}
                       onClick={() => void send(question)}
                     >
                       {label}
@@ -661,7 +705,7 @@ export function Assistant({
             onSuccess={async (result) => {
               setToken(result.token);
               setModal(undefined);
-              onAuthChange?.();
+              onAuthChange?.(true);
               track(
                 result.kind === "registration"
                   ? "h01_registration_success"

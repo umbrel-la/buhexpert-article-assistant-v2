@@ -19,7 +19,42 @@ async function request(path: string, body: unknown, signal?: AbortSignal) {
   return result;
 }
 export const demoAuth: AuthAdapter = {
+  mode: "demo",
+  session: async () => {
+    const response = await fetch("/api/demo-assistant/auth", {
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error("Не удалось проверить вход.");
+    return response.json();
+  },
   authenticate: (kind) => request("/api/demo-assistant/auth", { kind }),
+};
+export const siteAuth: AuthAdapter = {
+  mode: "real",
+  session: async () => {
+    const response = await fetch("/api/auth/session", { cache: "no-store" });
+    if (!response.ok) throw new Error("Не удалось проверить вход.");
+    const result = await response.json();
+    return {
+      authenticated: result.authenticated,
+      token: result.authenticated ? "site-session" : undefined,
+    };
+  },
+  authenticate: (kind) => request("/api/article-assistant/auth", { kind }),
+};
+export const siteAnalytics: AnalyticsAdapter = {
+  track(event) {
+    const counter = Number(process.env.NEXT_PUBLIC_YM_COUNTER_ID);
+    if (counter && window.ym) {
+      try {
+        window.ym(counter, "reachGoal", event.event, {
+          article_slug: event.articleSlug,
+        });
+      } catch {
+        /* Analytics must not interrupt a conversation. */
+      }
+    }
+  },
 };
 export const answerApi: AnswerAdapter = {
   ask: (input, signal) => request("/api/article-assistant", input, signal),

@@ -1,5 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 import type { EventRecord } from "../lib/article-assistant/contracts";
+import { answerPreview } from "../lib/ai";
 declare global {
   interface Window {
     prototypeEvents: EventRecord[];
@@ -9,6 +10,109 @@ const widget = (page: Page) =>
   page.getByRole("region", { name: "ИИ-помощник по статье", exact: true });
 const log = (page: Page) =>
   page.getByRole("region", { name: "Переписка", exact: true });
+
+test("preview keeps complete sentences, decimals and quoted punctuation", () => {
+  expect(
+    answerPreview(
+      "В 1С 8.3 откройте настройки. Проверьте п. 2 инструкции. Закрытое продолжение.",
+    ),
+  ).toBe("В 1С 8.3 откройте настройки. Проверьте п. 2 инструкции.");
+  expect(
+    answerPreview(
+      "Выберите «По сотруднику (Имя)». Затем сохраните изменения! Закрытое продолжение.",
+    ),
+  ).toBe("Выберите «По сотруднику (Имя)». Затем сохраните изменения!");
+  expect(answerPreview("Откройте настройки. Незаконченный хвост")).toBe(
+    "Откройте настройки.",
+  );
+});
+
+test("decorative blur, switching forms, same answer and persisted login", async ({
+  page,
+}) => {
+  let asks = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/demo-assistant") asks++;
+  });
+  await page.goto("/");
+  await widget(page)
+    .getByRole("button", {
+      name: "Как включить сортировку по фамилии?",
+      exact: true,
+    })
+    .click();
+  const blur = page.getByTestId("blurred-continuation");
+  await expect(blur).toBeVisible();
+  await expect(blur).toHaveText("");
+  await expect(blur).toHaveAttribute("aria-hidden", "true");
+  const before = await log(page).innerText();
+  await widget(page)
+    .getByRole("button", { name: "Зарегистрироваться и посмотреть ответ" })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Войти", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Закрыть форму" })
+    .click();
+  await expect(log(page)).toHaveText(before, { useInnerText: true });
+  await widget(page)
+    .getByRole("button", { name: "Войти", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Войти", exact: true })
+    .click();
+  await expect(log(page)).toContainText("Записать и закрыть");
+  await expect(blur).toHaveCount(0);
+  expect(asks).toBe(1);
+  await page
+    .getByLabel("Уточните вашу ситуацию", { exact: true })
+    .fill("Черновик, который не нужно восстанавливать");
+  await page.reload();
+  await expect(log(page)).toHaveCount(0);
+  await expect(page.getByLabel("Ваш вопрос", { exact: true })).toHaveValue("");
+  await widget(page)
+    .getByRole("button", {
+      name: "Как включить сортировку по фамилии?",
+      exact: true,
+    })
+    .click();
+  await expect(log(page)).toContainText("Записать и закрыть");
+  await expect(blur).toHaveCount(0);
+  await page.goto("/articles/os-v-1c-8-3");
+  await page.goto("/articles/sortirovka-sotrudnikov");
+  await expect(log(page)).toHaveCount(0);
+  await expect(page.getByLabel("Ваш вопрос", { exact: true })).toHaveValue("");
+  await widget(page)
+    .getByRole("button", {
+      name: "Как включить сортировку по фамилии?",
+      exact: true,
+    })
+    .click();
+  await expect(log(page)).toContainText("Записать и закрыть");
+});
+
+test("article context is resolved by slug and unknown articles are rejected", async ({
+  request,
+}) => {
+  const input = {
+    question: "Что проверить?",
+    history: [],
+    sessionId: crypto.randomUUID(),
+    requestId: crypto.randomUUID(),
+    articleSlug: "os-v-1c-8-3",
+  };
+  const response = await request.post("/api/demo-assistant", { data: input });
+  expect(response.status()).toBe(200);
+  expect((await response.json()).text).toContain("ОС");
+  const unknown = await request.post("/api/demo-assistant", {
+    data: { ...input, articleSlug: "unknown" },
+  });
+  expect(unknown.status()).toBe(400);
+});
 
 for (const width of [1440, 1024, 390]) {
   test(`chat controls ${width}px — loading, retry, long history, keyboard`, async ({
@@ -121,7 +225,7 @@ test("guest → preview → dismiss registration → register → same answer �
   });
   await page.goto("/");
   await expect(
-    widget(page).getByRole("button", { name: "Спросить ИИ" }),
+    widget(page).getByRole("button", { name: "Получить ответ" }),
   ).toBeEnabled();
   await expect(widget(page)).not.toContainText(
     "ИИ-помощник работает в тестовом режиме и может ошибаться",
@@ -135,7 +239,7 @@ test("guest → preview → dismiss registration → register → same answer �
   );
   await screenshot(page, "desktop-initial");
   await screenshot(page, "desktop-page", true);
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(page.getByLabel("Ваш вопрос", { exact: true })).toBeFocused();
   await expect(widget(page).getByRole("status")).toContainText(
     "Напишите вопрос",
@@ -209,7 +313,7 @@ test("guest → preview → dismiss registration → register → same answer �
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("А по табельному номеру?");
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(log(page)).toContainText("в статье указана возможность");
   expect(histories[2]).toEqual([]);
   events = await page.evaluate(() => window.prototypeEvents);
@@ -288,7 +392,7 @@ test("API failure preserves draft and history; retry does not count twice", asyn
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("Как сортировать по фамилии?");
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(log(page)).toContainText("Записать и закрыть");
   await page.route(
     "**/api/demo-assistant",
@@ -443,7 +547,7 @@ test("Markdown renders formatting and rejects HTML and javascript URLs", async (
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("Проверьте форматирование");
-  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
   await expect(log(page).locator("strong")).toHaveText("Важное");
   await expect(log(page).locator("ol li")).toHaveCount(2);
   await expect(log(page).locator("script")).toHaveCount(0);
@@ -609,7 +713,7 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
         .getByLabel("Ваш вопрос", { exact: true })
         .evaluate((e) => e.getBoundingClientRect().height),
     ).toBeGreaterThan(inputHeight);
-    await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
+    await widget(page).getByRole("button", { name: "Получить ответ" }).click();
     await widget(page)
       .getByRole("button", { name: "Зарегистрироваться и посмотреть ответ" })
       .click();

@@ -1,0 +1,132 @@
+[
+  {
+    "width": 1440,
+    "state": "initial",
+    "before": [
+      881,
+      423
+    ],
+    "after": [
+      881,
+      423
+    ],
+    "changedPixels": 60125
+  },
+  {
+    "width": 1440,
+    "state": "dialog",
+    "before": [
+      881,
+      741
+    ],
+    "after": [
+      881,
+      741
+    ],
+    "changedPixels": 65497
+  },
+  {
+    "width": 1440,
+    "state": "follow-up",
+    "before": [
+      881,
+      771
+    ],
+    "after": [
+      881,
+      771
+    ],
+    "changedPixels": 57598
+  },
+  {
+    "width": 1440,
+    "state": "long",
+    "before": [
+      881,
+      771
+    ],
+    "after": [
+      881,
+      771
+    ],
+    "changedPixels": 47954
+  },
+  {
+    "width": 1440,
+    "state": "registration",
+    "before": [
+      460,
+      602
+    ],
+    "after": [
+      460,
+      602
+    ],
+    "changedPixels": 1116
+  },
+  {
+    "width": 390,
+    "state": "initial",
+    "before": [
+      358,
+      567
+    ],
+    "after": [
+      358,
+      567
+    ],
+    "changedPixels": 35852
+  },
+  {
+    "width": 390,
+    "state": "dialog",
+    "before": [
+      358,
+      592
+    ],
+    "after": [
+      358,
+      592
+    ],
+    "changedPixels": 64202
+  },
+  {
+    "width": 390,
+    "state": "follow-up",
+    "before": [
+      358,
+      592
+    ],
+    "after": [
+      358,
+      592
+    ],
+    "changedPixels": 32157
+  },
+  {
+    "width": 390,
+    "state": "long",
+    "before": [
+      358,
+      592
+    ],
+    "after": [
+      358,
+      592
+    ],
+    "changedPixels": 28866
+  },
+  {
+    "width": 390,
+    "state": "registration",
+    "before": [
+      358,
+      582
+    ],
+    "after": [
+      358,
+      582
+    ],
+    "changedPixels": 185
+  }
+]

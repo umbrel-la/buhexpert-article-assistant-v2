@@ -1,4 +1,5 @@
 import "server-only";
+import { sortingArticle } from "./sorting-article";
 
 export type ArticleContext = {
   slug: string;
@@ -46,5 +47,6 @@ const articles: Record<string, ArticleContext> = {
 };
 
 export function getArticleContext(slug: string) {
+  if (slug === sortingArticle.slug) return sortingArticle;
   return articles[slug] ?? null;
 }

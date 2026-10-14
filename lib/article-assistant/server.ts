@@ -51,11 +51,22 @@ export async function authorized(
   token?: string,
   demo = isDemo(),
 ) {
-  if (!demo) return (await getServerSession(request)).authenticated;
+  return (await assistantIdentity(request, token, demo)).authenticated;
+}
+export async function assistantIdentity(
+  request: NextRequest,
+  token?: string,
+  demo = isDemo(),
+) {
+  if (!demo) return getServerSession(request);
   try {
-    return unseal(token || "", true).type === "demo-auth";
+    const payload = unseal(token || "", true);
+    return {
+      authenticated: payload.type === "demo-auth",
+      userId: payload.type === "demo-auth" ? "demo-reader" : undefined,
+    };
   } catch {
-    return false;
+    return { authenticated: false, userId: undefined };
   }
 }
 export function pilotEnabled(now = Date.now()) {

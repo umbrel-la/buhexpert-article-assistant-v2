@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sortingArticle } from "@/data/sorting-article";
+import { getArticleContext } from "@/data/article-context";
 import { createAiAnswer, answerPreview } from "@/lib/ai";
 import { fixture } from "@/lib/article-assistant/fixtures";
 import {
-  authorized,
+  assistantIdentity,
   isDemo,
   pilotEnabled,
   seal,
 } from "@/lib/article-assistant/server";
 import type { ChatTurn } from "@/types";
+import { readHistory, saveHistory, type HistoryRecord } from "./history";
 export async function handleAsk(request: NextRequest, demo = isDemo()) {
   if (!demo && !pilotEnabled())
     return NextResponse.json(
@@ -16,12 +18,16 @@ export async function handleAsk(request: NextRequest, demo = isDemo()) {
       { status: 503 },
     );
   const body = await request.json().catch(() => null);
+  const article =
+    typeof body?.articleSlug === "string"
+      ? getArticleContext(body.articleSlug)
+      : null;
   if (
     !body ||
     typeof body.question !== "string" ||
     !body.question.trim() ||
     body.question.length > 2000 ||
-    body.articleSlug !== sortingArticle.slug ||
+    !article ||
     !/^[\w-]{16,120}$/.test(body.sessionId || "") ||
     !/^[\w-]{16,120}$/.test(body.requestId || "")
   )
@@ -50,22 +56,59 @@ export async function handleAsk(request: NextRequest, demo = isDemo()) {
       { status: 502 },
     );
   try {
-    let answer = fixture(body.question);
-    if (!demo) {
+    const identity = await assistantIdentity(request, body.token, demo);
+    const saved = await readHistory(body.sessionId, body.requestId, demo);
+    if (
+      saved &&
+      (saved.question !== body.question || saved.articleSlug !== article.slug)
+    )
+      return NextResponse.json(
+        { error: "Этот запрос уже относится к другому вопросу." },
+        { status: 409 },
+      );
+    const record: HistoryRecord = saved || {
+      sessionId: body.sessionId,
+      requestId: body.requestId,
+      articleSlug: article.slug,
+      question: body.question,
+      history: body.history.map(({ role, content }: ChatTurn) => ({
+        role,
+        content,
+      })),
+      userId: identity.userId,
+      mode: demo ? "demo" : "real",
+      createdAt: new Date().toISOString(),
+    };
+    await saveHistory(record);
+    let answer =
+      article.slug === sortingArticle.slug
+        ? fixture(body.question)
+        : {
+            preview: answerPreview(article.text),
+            full: article.text,
+          };
+    if (saved?.answer) {
+      answer = { preview: answerPreview(saved.answer), full: saved.answer };
+    } else if (!demo) {
       if (!process.env.AI_API_KEY) throw new Error("AI key missing");
       const result = await createAiAnswer(
         body.question,
         [],
         0,
         body.history,
-        sortingArticle,
+        article,
       );
       answer = {
         preview: answerPreview(result.shortAnswer),
         full: result.shortAnswer,
       };
     }
-    const loggedIn = await authorized(request, body.token, demo);
+    await saveHistory({
+      ...record,
+      answer: answer.full,
+      userId: identity.userId || record.userId,
+    });
+    const loggedIn = identity.authenticated;
     return NextResponse.json(
       loggedIn
         ? { text: answer.full, locked: false }
@@ -76,6 +119,8 @@ export async function handleAsk(request: NextRequest, demo = isDemo()) {
               {
                 type: "answer",
                 sessionId: body.sessionId,
+                requestId: body.requestId,
+                articleSlug: article.slug,
                 text: answer.full,
               },
               demo,

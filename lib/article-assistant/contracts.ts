@@ -17,6 +17,8 @@ export type Scenario =
   | "error";
 export type AuthResult = { token: string; kind: "registration" | "login" };
 export interface AuthAdapter {
+  mode: "demo" | "real";
+  session(): Promise<{ authenticated: boolean; token?: string }>;
   authenticate(kind: AuthResult["kind"]): Promise<AuthResult>;
 }
 export interface AnswerAdapter {
@@ -58,7 +60,7 @@ export type EventRecord = {
   initialGroup: "guest" | "authenticated";
   questionCount: number;
   at: string;
-  mode: "demo";
+  mode: "demo" | "real";
 };
 export interface AnalyticsAdapter {
   track(event: EventRecord): void;

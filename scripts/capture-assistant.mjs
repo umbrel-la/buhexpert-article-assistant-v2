@@ -4,10 +4,12 @@ import { mkdir } from "node:fs/promises";
 // Run against a production server: npm start -- --port 3002
 // Override with CAPTURE_URL to capture an already deployed prototype.
 const browser = await chromium.launch();
-const destination = "docs/screenshots";
+const destination = process.env.CAPTURE_DIR || "docs/screenshots";
 await mkdir(destination, { recursive: true });
 try {
-  for (const width of [2048, 1440, 1024, 390, 375]) {
+  for (const width of (process.env.CAPTURE_WIDTHS || "2048,1440,1024,390,375")
+    .split(",")
+    .map(Number)) {
     const page = await browser.newPage({
       viewport: { width, height: width > 700 ? 1100 : 844 },
       reducedMotion: "reduce",

@@ -26,9 +26,20 @@ export function createDemoAnswer(materials: Material[], remainingQueries: number
 }
 
 export function answerPreview(text: string) {
-  const sentences = text.match(/[^.!?…]+[.!?…]+/g)?.map((item) => item.trim()).filter(Boolean) || [];
-  if (sentences.length) return sentences.slice(0, 2).join(" ");
-  return text.split(/\n+/).find(Boolean)?.trim() || text;
+  const sentences: string[] = [];
+  let pending = "";
+  for (const { segment } of new Intl.Segmenter("ru", { granularity: "sentence" }).segment(text)) {
+    pending += segment;
+    // Decimal versions (1С 8.3), dates and common abbreviations aren't sentence ends.
+    if (/(?:^|\s)(?:(?:г|гг|руб|коп|стр|рис|п|пп|ст|им)|т\.\s*[ед])\.\s*$/iu.test(pending)) continue;
+    if (/[.!?…][»”"')\]]*\s*$/.test(pending)) {
+      sentences.push(pending.trim());
+      pending = "";
+      if (sentences.length === 2) break;
+    }
+  }
+  if (sentences.length) return sentences.join(" ");
+  return (text.split(/\n\s*\n/).find((part) => part.trim())?.trim() || "Ответ подготовлен").replace(/[.!?…]*$/, ".");
 }
 
 type AiMessage = { role: "system" | "user" | "assistant"; content: string };

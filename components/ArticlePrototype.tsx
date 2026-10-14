@@ -8,6 +8,9 @@ import {
   demoApi,
   createDemoAnalytics,
   demoAuth,
+  answerApi,
+  siteAuth,
+  siteAnalytics,
 } from "@/lib/article-assistant/client";
 import type { EventRecord, Scenario } from "@/lib/article-assistant/contracts";
 import s from "./ArticlePrototype.module.css";
@@ -31,9 +34,11 @@ const nav = [
 export function ArticlePrototype({
   demo = false,
   enabled = true,
+  mode = "demo",
 }: {
   demo?: boolean;
   enabled?: boolean;
+  mode?: "demo" | "real";
 }) {
   const [scenario, setScenario] = useState<Scenario>("guest");
   const [revision, setRevision] = useState(0);
@@ -273,18 +278,6 @@ export function ArticlePrototype({
         </nav>
         <article>
           <h1>{article.title}</h1>
-          {(demo || enabled) && (
-            <Assistant
-              key={`${scenario}-${revision}`}
-              article={article}
-              scenario={scenario}
-              api={demoApi}
-              auth={demoAuth}
-              analytics={analytics}
-              authRequest={authRequest}
-              onAuthChange={() => setLoggedIn(true)}
-            />
-          )}
           <div className={s.date}>
             Последнее изменение:{" "}
             <time dateTime="2019-08-09">{article.updatedAt}</time>
@@ -297,6 +290,19 @@ export function ArticlePrototype({
             </p>
           </blockquote>
           <p className={s.articleText}>{article.intro}</p>
+          {(demo || enabled) && (
+            <Assistant
+              key={`${article.slug}-${scenario}-${revision}`}
+              article={article}
+              scenario={scenario}
+              api={demo || mode === "demo" ? demoApi : answerApi}
+              auth={demo || mode === "demo" ? demoAuth : siteAuth}
+              analytics={demo || mode === "demo" ? analytics : siteAnalytics}
+              restoreAuth={!demo}
+              authRequest={authRequest}
+              onAuthChange={setLoggedIn}
+            />
+          )}
           <div id="instructions" className={s.instructions}>
             <p>
               Настройка производится в разделе{" "}
