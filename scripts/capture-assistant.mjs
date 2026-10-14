@@ -5,12 +5,9 @@ import { mkdir } from "node:fs/promises";
 // Override with CAPTURE_URL to capture an already deployed prototype.
 const browser = await chromium.launch();
 const destination = "docs/screenshots";
-const widths = (process.env.CAPTURE_WIDTHS || "2048,1440,1024,390,375")
-  .split(",")
-  .map(Number);
 await mkdir(destination, { recursive: true });
 try {
-  for (const width of widths) {
+  for (const width of [2048, 1440, 1024, 390, 375]) {
     const page = await browser.newPage({
       viewport: { width, height: width > 700 ? 1100 : 844 },
       reducedMotion: "reduce",
@@ -34,11 +31,11 @@ try {
         });
       });
       await page.screenshot({
-        path: `${destination}/refined-${width}-${state}-page.png`,
+        path: `${destination}/restored-${width}-${state}-page.png`,
       });
       if (state === "initial" || state === "long") {
         await page.screenshot({
-          path: `${destination}/refined-${width}-${state}-full-page.png`,
+          path: `${destination}/restored-${width}-${state}-full-page.png`,
           fullPage: true,
         });
       }

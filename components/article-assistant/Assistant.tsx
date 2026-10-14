@@ -57,20 +57,6 @@ export function Assistant({
   const [unread, setUnread] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [hasPending, setHasPending] = useState(false);
-  const [glow, setGlow] = useState<"waiting" | "running" | "settling" | "done">(
-    "waiting",
-  );
-  const glowConsumed = useRef(false);
-  const stopGlow = useCallback(() => {
-    glowConsumed.current = true;
-    setGlow((current) =>
-      current === "running"
-        ? "settling"
-        : current === "settling"
-          ? current
-          : "done",
-    );
-  }, []);
   const session = useRef("");
   const count = useRef(0);
   const flight = useRef(false);
@@ -86,33 +72,6 @@ export function Assistant({
   const seeded = useRef(false);
   const opened = useRef(false);
   const viewed = useRef(false);
-  useEffect(() => {
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting || glowConsumed.current) return;
-      glowConsumed.current = true;
-      setGlow(motion.matches ? "done" : "running");
-      observer.disconnect();
-    });
-    const reduceMotion = () => {
-      if (motion.matches) {
-        stopGlow();
-        observer.disconnect();
-      }
-    };
-    if (motion.matches) queueMicrotask(reduceMotion);
-    else if (card.current) observer.observe(card.current);
-    motion.addEventListener("change", reduceMotion);
-    return () => {
-      observer.disconnect();
-      motion.removeEventListener("change", reduceMotion);
-    };
-  }, [stopGlow]);
-  useEffect(() => {
-    if (glow !== "settling") return;
-    const timer = setTimeout(() => setGlow("done"), 700);
-    return () => clearTimeout(timer);
-  }, [glow]);
   const initialGroup = ["authenticated", "full", "long"].includes(scenario)
     ? "authenticated"
     : "guest";
@@ -249,7 +208,6 @@ export function Assistant({
       return;
     }
     setInputHint("");
-    stopGlow();
     flight.current = true;
     setLoading(true);
     setError("");
@@ -429,14 +387,7 @@ export function Assistant({
   const expanded = messages.length > 0;
   const lastAnswerId = messages.findLast((m) => m.role === "assistant")?.id;
   return (
-    <div
-      className={s.container}
-      data-glow={glow}
-      onAnimationEnd={(event) => {
-        if (event.target === event.currentTarget && glow === "running")
-          stopGlow();
-      }}
-    >
+    <div className={s.container}>
       <section
         ref={card}
         id="assistant"
@@ -492,91 +443,34 @@ export function Assistant({
             {messages.map((m) => (
               <div
                 key={m.id}
-                className={m.role === "user" ? s.question : s.answer}
+                className={
+                  m.role === "user"
+                    ? s.question
+                    : `${s.answer} ${m.locked ? s.previewAnswer : ""}`
+                }
               >
-                <div
-                  className={m.role === "assistant" ? s.answerBody : undefined}
-                >
-                  <div className={s.messageLabel}>
-                    {m.role === "user"
-                      ? "Ваш вопрос"
-                      : "Бухэксперт · ИИ-помощник"}
-                  </div>
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    skipHtml
-                    components={{
-                      a: (props) => (
-                        <a
-                          {...props}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        />
-                      ),
-                    }}
-                  >
-                    {m.content}
-                  </ReactMarkdown>
-                  {m.id === lastAnswerId && (
-                    <p className={s.disclaimer}>
-                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 11v6M12 7v1" />
-                      </svg>
-                      <span>
-                        ИИ-помощник работает в тестовом режиме и может
-                        ошибаться. Перед применением проверяйте ответ по
-                        актуальным источникам; в сложных случаях уточните у
-                        эксперта.
-                      </span>
-                    </p>
-                  )}
+                <div className={s.messageLabel}>
+                  {m.role === "user"
+                    ? "Ваш вопрос"
+                    : "Бухэксперт · ИИ-помощник"}
                 </div>
-                {m.locked && (
-                  <div className={s.gate}>
-                    <div>
-                      <h3>
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <rect x="5" y="10" width="14" height="11" rx="2" />
-                          <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
-                        </svg>
-                        Полный ответ уже готов
-                      </h3>
-                      <p>
-                        Зарегистрируйтесь, чтобы открыть продолжение ответа и
-                        продолжить диалог с ИИ-помощником.
-                      </p>
-                      {token ? (
-                        <button
-                          className={s.primary}
-                          disabled={unlocking}
-                          onClick={() => void unlock(token)}
-                        >
-                          {unlocking
-                            ? "Открываю ответ…"
-                            : "Открыть сохраненный ответ"}
-                        </button>
-                      ) : (
-                        <div className={s.gateActions}>
-                          <button
-                            className={s.primary}
-                            onClick={() => openAuth("registration")}
-                          >
-                            Зарегистрироваться и посмотреть ответ
-                          </button>
-                          <div className={s.loginLine}>
-                            Уже есть аккаунт?{" "}
-                            <button
-                              className={s.link}
-                              onClick={() => openAuth("login")}
-                            >
-                              Войти
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  skipHtml
+                  components={{
+                    a: (props) => (
+                      <a {...props} target="_blank" rel="noopener noreferrer" />
+                    ),
+                  }}
+                >
+                  {m.content}
+                </ReactMarkdown>
+                {m.id === lastAnswerId && (
+                  <p className={s.disclaimer}>
+                    ИИ-помощник работает в тестовом режиме и может ошибаться.
+                    Перед применением проверяйте ответ по актуальным источникам;
+                    в сложных случаях уточните у эксперта.
+                  </p>
                 )}
               </div>
             ))}
@@ -588,6 +482,52 @@ export function Assistant({
                   <i />
                 </span>
                 Готовим ответ с учётом статьи…
+              </div>
+            )}
+            {locked && (
+              <div className={s.gate}>
+                <div>
+                  <h3>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="m8 12 3 3 5-6" />
+                    </svg>
+                    Полный ответ уже готов
+                  </h3>
+                  <p>
+                    Зарегистрируйтесь, чтобы открыть продолжение ответа и
+                    продолжить диалог с ИИ-помощником.
+                  </p>
+                  {token ? (
+                    <button
+                      className={s.primary}
+                      disabled={unlocking}
+                      onClick={() => void unlock(token)}
+                    >
+                      {unlocking
+                        ? "Открываю ответ…"
+                        : "Открыть сохраненный ответ"}
+                    </button>
+                  ) : (
+                    <div className={s.gateActions}>
+                      <button
+                        className={s.primary}
+                        onClick={() => openAuth("registration")}
+                      >
+                        Зарегистрироваться и посмотреть ответ
+                      </button>
+                      <div className={s.loginLine}>
+                        Уже есть аккаунт?{" "}
+                        <button
+                          className={s.link}
+                          onClick={() => openAuth("login")}
+                        >
+                          Войти
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             {error && (
@@ -635,7 +575,6 @@ export function Assistant({
             <div className={s.inputRow}>
               <textarea
                 ref={input}
-                onFocus={stopGlow}
                 id="assistant-question"
                 rows={1}
                 maxLength={2000}
