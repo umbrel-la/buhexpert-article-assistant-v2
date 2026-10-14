@@ -31,11 +31,11 @@ try {
         });
       });
       await page.screenshot({
-        path: `${destination}/compact-${width}-${state}-page.png`,
+        path: `${destination}/restored-${width}-${state}-page.png`,
       });
       if (state === "initial" || state === "long") {
         await page.screenshot({
-          path: `${destination}/compact-${width}-${state}-full-page.png`,
+          path: `${destination}/restored-${width}-${state}-full-page.png`,
           fullPage: true,
         });
       }
@@ -56,8 +56,9 @@ try {
       );
       await page.screenshot({ path: `${destination}/ux-wide-page.png` });
     }
-    await card.getByRole("button", { name: "Сортировка по фамилии" }).click();
-    await card.getByRole("button", { name: "Получить ответ" }).click();
+    await card
+      .getByRole("button", { name: "Как включить сортировку по фамилии?" })
+      .click();
     const register = card.getByRole("button", {
       name: "Зарегистрироваться и посмотреть ответ",
     });
@@ -75,7 +76,7 @@ try {
     await field.waitFor();
     await capture("dialog");
     await field.fill("Можно сортировать по подразделению?");
-    await card.getByRole("button", { name: "Отправить", exact: true }).click();
+    await card.getByRole("button", { name: "Уточнить", exact: true }).click();
     await card
       .getByText("«По подразделению (Приоритет)»", { exact: true })
       .waitFor();
@@ -95,9 +96,7 @@ try {
         .getByText("Бухэксперт · ИИ-помощник", { exact: true })
         .count();
       await field.fill(question);
-      await card
-        .getByRole("button", { name: "Отправить", exact: true })
-        .click();
+      await card.getByRole("button", { name: "Уточнить", exact: true }).click();
       await history
         .getByText("Бухэксперт · ИИ-помощник", { exact: true })
         .nth(count)

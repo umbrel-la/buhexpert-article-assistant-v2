@@ -400,8 +400,9 @@ export function Assistant({
               <Owl />
             </span>
             <div className={s.brand}>
-              <div className={s.eyebrow}>ИИ-помощник по статье</div>
+              <div className={s.eyebrow}>ИИ-помощник Бухэксперта</div>
             </div>
+            {!expanded && <span className={s.context}>В контексте статьи</span>}
             {expanded && (
               <button
                 className={s.reset}
@@ -413,6 +414,15 @@ export function Assistant({
             )}
           </div>
         </div>
+        {!expanded && (
+          <div className={s.intro}>
+            <h2>Нужен ответ для вашей ситуации?</h2>
+            <p>
+              Спросите ИИ-помощника БухЭксперта. Он учтет содержание статьи и
+              поможет разобраться в вашей ситуации.
+            </p>
+          </div>
+        )}
         {expanded && (
           <div
             ref={log}
@@ -457,7 +467,9 @@ export function Assistant({
                 </ReactMarkdown>
                 {m.id === lastAnswerId && (
                   <p className={s.disclaimer}>
-                    ИИ может ошибаться. Сверяйте ответ с материалами статьи.
+                    ИИ-помощник работает в тестовом режиме и может ошибаться.
+                    Перед применением проверяйте ответ по актуальным источникам;
+                    в сложных случаях уточните у эксперта.
                   </p>
                 )}
               </div>
@@ -469,7 +481,7 @@ export function Assistant({
                   <i />
                   <i />
                 </span>
-                Готовлю ответ по статье
+                Готовим ответ с учётом статьи…
               </div>
             )}
             {locked && (
@@ -480,11 +492,11 @@ export function Assistant({
                       <circle cx="12" cy="12" r="9" />
                       <path d="m8 12 3 3 5-6" />
                     </svg>
-                    Полный ответ готов
+                    Полный ответ уже готов
                   </h3>
                   <p>
-                    Зарегистрируйтесь бесплатно, чтобы прочитать продолжение и
-                    задать уточняющий вопрос.
+                    Зарегистрируйтесь, чтобы открыть продолжение ответа и
+                    продолжить диалог с ИИ-помощником.
                   </p>
                   {token ? (
                     <button
@@ -577,7 +589,7 @@ export function Assistant({
                 }
                 placeholder={
                   expanded
-                    ? "Напишите уточняющий вопрос"
+                    ? "Уточните вашу ситуацию"
                     : "Что хотите уточнить по статье?"
                 }
                 disabled={loading}
@@ -590,15 +602,15 @@ export function Assistant({
               />
               <button
                 className={s.primary}
-                aria-label={expanded ? "Отправить" : undefined}
+                aria-label={expanded ? "Уточнить" : undefined}
                 disabled={loading || hasPending}
                 type="submit"
               >
                 {loading
-                  ? "Готовлю ответ…"
+                  ? "Готовим ответ…"
                   : expanded
-                    ? "Отправить"
-                    : "Получить ответ"}
+                    ? "Уточнить"
+                    : "Спросить ИИ"}
                 <svg
                   className={s.sendIcon}
                   viewBox="0 0 24 24"
@@ -621,27 +633,21 @@ export function Assistant({
             )}
             {!expanded && (
               <>
+                <p className={s.examplesLabel}>
+                  Можно начать с одного из вопросов
+                </p>
                 <div className={s.examples}>
                   {article.suggestions.map(({ label, question }) => (
                     <button
                       type="button"
                       key={question}
-                      onClick={() => {
-                        setDraft(question);
-                        setInputHint("");
-                        input.current?.focus();
-                      }}
+                      disabled={loading}
+                      onClick={() => void send(question)}
                     >
                       {label}
                     </button>
                   ))}
                 </div>
-                {!token && (
-                  <p className={s.condition}>
-                    Начало ответа сразу. Полный ответ после бесплатной
-                    регистрации.
-                  </p>
-                )}
               </>
             )}
           </form>

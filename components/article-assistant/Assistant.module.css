@@ -1,6 +1,8 @@
 .container {
   width: 100%;
+  max-width: 760px;
   min-width: 0;
+  box-sizing: border-box;
   container: article-assistant / inline-size;
   display: flow-root;
 }
@@ -18,7 +20,9 @@
   border-radius: 20px;
   box-shadow: 0 12px 32px rgba(50, 30, 85, 0.1);
   width: 100%;
-  margin: 30px auto;
+  max-width: 760px;
+  min-width: 0;
+  margin: 30px 0;
   padding: 0;
   font:
     400 16px/1.6 Roboto,
@@ -96,6 +100,37 @@
   flex-shrink: 0;
   min-width: 0;
   padding: 20px;
+}
+.context {
+  margin-left: auto;
+  padding: 4px 9px;
+  border: 1px solid #ffffff40;
+  border-radius: 6px;
+  color: #f3ebff;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.intro {
+  padding: 24px 20px 0;
+}
+.intro h2 {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 25px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+.intro p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.examplesLabel {
+  margin: 20px 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 .fieldLabel {
   position: absolute;
@@ -208,7 +243,7 @@
   gap: 8px;
   align-items: stretch;
   flex-wrap: wrap;
-  margin: 12px 0;
+  margin: 0;
 }
 .card .examples button {
   padding: 10px 13px;
@@ -228,12 +263,6 @@
   background: #eee7fa;
   border-color: #b49bdc;
   color: #56359c;
-}
-.condition {
-  font-size: 14px;
-  color: var(--muted);
-  margin: 0;
-  line-height: 1.55;
 }
 .answer .disclaimer {
   border-top: 1px solid var(--line);
@@ -269,6 +298,7 @@
 }
 .messages {
   flex: 0 1 auto;
+  min-width: 0;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
@@ -630,6 +660,17 @@
   .composer {
     padding: 16px;
   }
+  .intro {
+    padding: 20px 16px 0;
+  }
+  .intro h2 {
+    font-size: 23px;
+  }
+  .context {
+    max-width: 100px;
+    font-size: 11px;
+    padding: 4px 7px;
+  }
   .inputRow textarea {
     min-height: max(52px, calc(1.5em + 26px));
     padding: 12px;
@@ -639,15 +680,10 @@
   }
   .examples {
     gap: 4px 8px;
-    margin: 8px 0;
   }
   .card .examples button {
     font-size: 14px;
     padding: 10px 12px;
-  }
-  .condition {
-    font-size: 13px;
-    line-height: 1.5;
   }
   .expanded .header {
     gap: 8px;

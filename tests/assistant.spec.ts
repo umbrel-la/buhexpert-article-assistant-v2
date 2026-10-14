@@ -18,7 +18,7 @@ for (const width of [1440, 1024, 390]) {
     await page.goto("/demo");
     await page.getByRole("button", { name: "Загрузка", exact: true }).click();
     await expect(widget(page).getByRole("status")).toHaveText(
-      "Готовлю ответ по статье",
+      "Готовим ответ с учётом статьи…",
     );
     await widget(page).scrollIntoViewIfNeeded();
     await screenshot(page, `loading-${width}`);
@@ -36,7 +36,7 @@ for (const width of [1440, 1024, 390]) {
     await retry.focus();
     await page.keyboard.press("Enter");
     await expect(
-      widget(page).getByRole("heading", { name: "Полный ответ готов" }),
+      widget(page).getByRole("heading", { name: "Полный ответ уже готов" }),
     ).toBeVisible();
     await expect(log(page)).toContainText(savedQuestion);
 
@@ -69,7 +69,7 @@ for (const width of [1440, 1024, 390]) {
     await field.focus();
     await page.keyboard.press("Tab");
     const send = widget(page).getByRole("button", {
-      name: "Отправить",
+      name: "Уточнить",
       exact: true,
     });
     await expect(send).toBeFocused();
@@ -112,35 +112,44 @@ test("guest → preview → dismiss registration → register → same answer �
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   let queries = 0;
+  const histories: { role: string; content: string }[][] = [];
   page.on("request", (r) => {
-    if (new URL(r.url()).pathname === "/api/demo-assistant") queries++;
+    if (new URL(r.url()).pathname === "/api/demo-assistant") {
+      queries++;
+      histories.push(r.postDataJSON().history);
+    }
   });
   await page.goto("/");
   await expect(
-    widget(page).getByRole("button", { name: "Получить ответ" }),
+    widget(page).getByRole("button", { name: "Спросить ИИ" }),
   ).toBeEnabled();
-  await expect(widget(page)).not.toContainText("ИИ может ошибаться");
-  await expect(widget(page).getByRole("button")).toHaveCount(3);
+  await expect(widget(page)).not.toContainText(
+    "ИИ-помощник работает в тестовом режиме и может ошибаться",
+  );
+  await expect(widget(page).getByRole("button")).toHaveCount(4);
+  await expect(widget(page)).toContainText("ИИ-помощник Бухэксперта");
+  await expect(widget(page)).toContainText("В контексте статьи");
+  await expect(widget(page)).toContainText("Можно начать с одного из вопросов");
+  await expect(widget(page).getByRole("heading")).toHaveText(
+    "Нужен ответ для вашей ситуации?",
+  );
   await screenshot(page, "desktop-initial");
   await screenshot(page, "desktop-page", true);
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
   await expect(page.getByLabel("Ваш вопрос", { exact: true })).toBeFocused();
   await expect(widget(page).getByRole("status")).toContainText(
     "Напишите вопрос",
   );
   expect(queries).toBe(0);
   await widget(page)
-    .getByRole("button", { name: "Сортировка по фамилии" })
+    .getByRole("button", { name: "Как включить сортировку по фамилии?" })
     .click();
-  await expect(page.getByLabel("Ваш вопрос", { exact: true })).toHaveValue(
-    "Как включить сортировку по фамилии?",
-  );
-  expect(queries).toBe(0);
-  await expect(page.getByLabel("Ваш вопрос", { exact: true })).toBeFocused();
-  await expect(widget(page).getByRole("status")).toHaveCount(0);
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await expect(log(page)).toContainText("Как включить сортировку по фамилии?");
+  await expect(
+    widget(page).getByRole("button", { name: "Новый диалог" }),
+  ).toBeDisabled();
   await expect(widget(page).getByRole("status")).toContainText(
-    "Готовлю ответ по статье",
+    "Готовим ответ с учётом статьи…",
   );
   await expect(
     widget(page).getByRole("button", {
@@ -148,7 +157,9 @@ test("guest → preview → dismiss registration → register → same answer �
     }),
   ).toBeVisible();
   expect(queries).toBe(1);
-  await expect(log(page)).toContainText("ИИ может ошибаться");
+  await expect(log(page)).toContainText(
+    "ИИ-помощник работает в тестовом режиме и может ошибаться",
+  );
   await expect(log(page)).not.toContainText("Нажмите «Записать и закрыть»");
   await widget(page).scrollIntoViewIfNeeded();
   await screenshot(page, "desktop-preview");
@@ -175,8 +186,15 @@ test("guest → preview → dismiss registration → register → same answer �
   await page
     .getByLabel("Уточните вашу ситуацию", { exact: true })
     .fill("Можно сортировать по подразделению?");
-  await widget(page).getByRole("button", { name: "Отправить" }).click();
+  await widget(page).getByRole("button", { name: "Уточнить" }).click();
   await expect(log(page)).toContainText("По подразделению (Приоритет)");
+  expect(histories[1]).toMatchObject([
+    { role: "user", content: "Как включить сортировку по фамилии?" },
+    {
+      role: "assistant",
+      content: expect.stringContaining("Записать и закрыть"),
+    },
+  ]);
   await screenshot(page, "follow-up");
   let events = await page.evaluate(() => window.prototypeEvents);
   expect(
@@ -191,8 +209,9 @@ test("guest → preview → dismiss registration → register → same answer �
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("А по табельному номеру?");
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
   await expect(log(page)).toContainText("в статье указана возможность");
+  expect(histories[2]).toEqual([]);
   events = await page.evaluate(() => window.prototypeEvents);
   expect(
     events
@@ -208,6 +227,27 @@ test("guest → preview → dismiss registration → register → same answer �
   ).not.toBe(previousSession);
   expect(errors).toEqual([]);
 });
+
+for (const question of [
+  "Можно сортировать по подразделению?",
+  "Как настроить сортировку по табельному номеру?",
+]) {
+  test(`example sends immediately: ${question}`, async ({ page }) => {
+    await page.goto("/");
+    const request = page.waitForRequest("**/api/demo-assistant");
+    await widget(page)
+      .getByRole("button", { name: question, exact: true })
+      .click();
+    expect((await request).postDataJSON().question).toBe(question);
+    await expect(log(page)).toContainText(question);
+    await expect(
+      log(page).getByRole("heading", { name: "Полный ответ уже готов" }),
+    ).toBeVisible();
+    expect(
+      await widget(page).evaluate((e) => e.getBoundingClientRect().width),
+    ).toBeLessThanOrEqual(760);
+  });
+}
 
 test("existing login is not registration; form keyboard focus stays inside", async ({
   page,
@@ -248,7 +288,7 @@ test("API failure preserves draft and history; retry does not count twice", asyn
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("Как сортировать по фамилии?");
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
   await expect(log(page)).toContainText("Записать и закрыть");
   await page.route(
     "**/api/demo-assistant",
@@ -265,7 +305,7 @@ test("API failure preserves draft and history; retry does not count twice", asyn
   await page
     .getByLabel("Уточните вашу ситуацию", { exact: true })
     .fill("А по табельному номеру?");
-  await widget(page).getByRole("button", { name: "Отправить" }).click();
+  await widget(page).getByRole("button", { name: "Уточнить" }).click();
   await expect(widget(page).getByRole("alert")).toContainText(
     "Тестовая ошибка",
   );
@@ -311,7 +351,7 @@ test("long conversation stays bounded and preserves reading position", async ({
   await page
     .getByLabel("Уточните вашу ситуацию", { exact: true })
     .fill("Не вижу этот пункт в своей версии");
-  await widget(page).getByRole("button", { name: "Отправить" }).click();
+  await widget(page).getByRole("button", { name: "Уточнить" }).click();
   await expect(
     widget(page).getByRole("button", { name: "К новым сообщениям ↓" }),
   ).toBeVisible();
@@ -403,7 +443,7 @@ test("Markdown renders formatting and rejects HTML and javascript URLs", async (
   await page
     .getByLabel("Ваш вопрос", { exact: true })
     .fill("Проверьте форматирование");
-  await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+  await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
   await expect(log(page).locator("strong")).toHaveText("Важное");
   await expect(log(page).locator("ol li")).toHaveCount(2);
   await expect(log(page).locator("script")).toHaveCount(0);
@@ -418,7 +458,7 @@ test("loading stays compact and demo error can be retried", async ({
   await page.goto("/demo");
   await page.getByRole("button", { name: "Загрузка", exact: true }).click();
   await expect(widget(page).getByRole("status")).toHaveText(
-    "Готовлю ответ по статье",
+    "Готовим ответ с учётом статьи…",
   );
   await expect(
     widget(page).getByRole("heading", {
@@ -437,7 +477,7 @@ test("loading stays compact and demo error can be retried", async ({
   ).not.toHaveValue("");
   await widget(page).getByRole("button", { name: "Повторить запрос" }).click();
   await expect(
-    widget(page).getByRole("heading", { name: "Полный ответ готов" }),
+    widget(page).getByRole("heading", { name: "Полный ответ уже готов" }),
   ).toBeVisible();
 });
 
@@ -463,7 +503,7 @@ test("mobile composer stays usable in a reduced visual viewport", async ({
     await widget(page).evaluate((e) => e.getBoundingClientRect().height),
   ).toBeLessThanOrEqual(295);
   await expect(
-    widget(page).getByRole("button", { name: "Отправить", exact: true }),
+    widget(page).getByRole("button", { name: "Уточнить", exact: true }),
   ).toBeVisible();
   expect(await log(page).evaluate((e) => e.clientHeight)).toBeGreaterThan(40);
 });
@@ -518,18 +558,20 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
       return {
         width: card.width,
         available: container.width,
-        centerOffset:
-          (card.left + card.right - container.left - container.right) / 2,
+        articleWidth: e.closest("article")!.getBoundingClientRect().width,
+        leftOffset:
+          card.left - e.closest("article")!.getBoundingClientRect().left,
       };
     });
     expect(bounds.width).toBeCloseTo(bounds.available, 0);
-    expect(Math.abs(bounds.centerOffset)).toBeLessThan(1);
+    expect(bounds.width).toBeLessThanOrEqual(760);
+    expect(Math.abs(bounds.leftOffset)).toBeLessThan(1);
     const initialHeight = await widget(page).evaluate(
       (e) => e.getBoundingClientRect().height,
     );
     if ([1440, 1024, 390].includes(width)) {
-      expect(initialHeight).toBeGreaterThanOrEqual(width === 390 ? 300 : 240);
-      expect(initialHeight).toBeLessThanOrEqual(width === 390 ? 350 : 280);
+      expect(initialHeight).toBeGreaterThanOrEqual(350);
+      expect(initialHeight).toBeLessThanOrEqual(width === 390 ? 650 : 480);
     }
     const inputHeight = await page
       .getByLabel("Ваш вопрос", { exact: true })
@@ -537,7 +579,8 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
     expect(inputHeight).toBeGreaterThanOrEqual(52);
     expect(inputHeight).toBeLessThanOrEqual(56);
     if (width >= 2048) {
-      expect(bounds.available).toBeGreaterThan(1600);
+      expect(bounds.width).toBe(760);
+      expect(bounds.articleWidth).toBeGreaterThan(1600);
       expect(
         await page
           .locator("main")
@@ -563,7 +606,7 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
         .getByLabel("Ваш вопрос", { exact: true })
         .evaluate((e) => e.getBoundingClientRect().height),
     ).toBeGreaterThan(inputHeight);
-    await widget(page).getByRole("button", { name: "Получить ответ" }).click();
+    await widget(page).getByRole("button", { name: "Спросить ИИ" }).click();
     await widget(page)
       .getByRole("button", { name: "Зарегистрироваться и посмотреть ответ" })
       .click();
