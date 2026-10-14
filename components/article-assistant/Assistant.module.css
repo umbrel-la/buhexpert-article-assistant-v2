@@ -1,6 +1,6 @@
 .container {
   width: 100%;
-  max-width: 760px;
+  max-width: 880px;
   margin: 28px auto;
   min-width: 0;
   box-sizing: border-box;
@@ -21,7 +21,7 @@
   border-radius: 20px;
   box-shadow: 0 12px 32px rgba(50, 30, 85, 0.1);
   width: 100%;
-  max-width: 760px;
+  max-width: none;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -59,7 +59,7 @@
 }
 .masthead {
   flex-shrink: 0;
-  padding: 6px 20px;
+  padding: 6px 24px;
   color: #fff;
   background: linear-gradient(115deg, #352452, #5b378d);
 }
@@ -100,7 +100,7 @@
 .composer {
   flex-shrink: 0;
   min-width: 0;
-  padding: 20px;
+  padding: 24px;
 }
 .context {
   margin-left: auto;
@@ -112,7 +112,7 @@
   line-height: 1.4;
 }
 .intro {
-  padding: 24px 20px 0;
+  padding: 24px 24px 0;
 }
 .intro h2 {
   margin: 0 0 10px;
@@ -305,7 +305,7 @@
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: #ad97cb transparent;
-  padding: 20px 20px 4px;
+  padding: 24px 24px 4px;
 }
 .messages:focus-visible {
   outline-offset: -4px;
@@ -389,7 +389,7 @@
   margin-bottom: 12px;
 }
 .expanded .composer {
-  padding: 16px 20px;
+  padding: 24px;
   border-top: 1px solid var(--line);
   background: #f8f5fc;
 }
@@ -662,7 +662,7 @@
     padding: 16px;
   }
   .intro {
-    padding: 20px 16px 0;
+    padding: 16px 16px 0;
   }
   .intro h2 {
     font-size: 23px;
@@ -731,7 +731,7 @@
     padding: 12px;
   }
   .expanded .composer {
-    padding: 12px 16px;
+    padding: 16px;
   }
 }
 @container article-assistant (max-width: 600px) {

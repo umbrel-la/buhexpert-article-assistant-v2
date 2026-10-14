@@ -245,7 +245,7 @@ for (const question of [
     ).toBeVisible();
     expect(
       await widget(page).evaluate((e) => e.getBoundingClientRect().width),
-    ).toBeLessThanOrEqual(760);
+    ).toBeLessThanOrEqual(880);
   });
 }
 
@@ -567,7 +567,7 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
       };
     });
     expect(bounds.width).toBeCloseTo(bounds.available, 0);
-    expect(bounds.width).toBeLessThanOrEqual(760);
+    expect(bounds.width).toBeLessThanOrEqual(880);
     expect(Math.abs(bounds.centerOffset)).toBeLessThan(1);
     const initialHeight = await widget(page).evaluate(
       (e) => e.getBoundingClientRect().height,
@@ -582,7 +582,7 @@ for (const width of [2560, 2048, 1440, 1024, 768, 390, 375, 360])
     expect(inputHeight).toBeGreaterThanOrEqual(52);
     expect(inputHeight).toBeLessThanOrEqual(56);
     if (width >= 2048) {
-      expect(bounds.width).toBe(760);
+      expect(bounds.width).toBe(880);
       expect(bounds.articleWidth).toBeGreaterThan(1600);
       expect(
         await page
